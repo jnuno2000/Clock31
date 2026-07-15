@@ -200,7 +200,7 @@ public class C31Widget extends AppWidgetProvider {
             int blockPx=calendarBlockHeightPx>0 ? calendarBlockHeightPx : computeCalendarBlockHeightPx(context, density);
             int dividerPx=(int)Math.ceil(6f*density);
             if(widgetHdp>0 && blockPx>dividerPx){
-                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 24f*density;
+                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 8f*density;
                 // blockPx includes one divider; N blocks use N-1 dividers, so the list
                 // is N*blockPx - one divider. Pick the largest N that fits.
                 int n=Math.max(1, (int)Math.floor((availablePx + dividerPx)/(float)blockPx));

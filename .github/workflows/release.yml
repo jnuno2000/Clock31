@@ -8,6 +8,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag to create (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
 
 permissions:
   contents: write
@@ -37,6 +42,8 @@ jobs:
         run: |
           if [ "${GITHUB_REF}" != "${GITHUB_REF#refs/tags/}" ]; then
             echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
           else
             echo "version=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           fi
@@ -72,11 +79,12 @@ jobs:
           path: ${{ env.APK }}
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: Clock 31 ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
           files: ${{ env.APK }}
           fail_on_unmatched_files: true
           body: |

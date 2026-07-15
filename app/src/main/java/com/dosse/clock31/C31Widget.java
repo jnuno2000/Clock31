@@ -26,10 +26,10 @@ import android.text.format.DateFormat;
  * Implementation of App Widget functionality.
  * App Widget Configuration implemented in {@link C31WidgetConfigureActivity C31WidgetConfigureActivity}
  *
- * The clock, date and alarm are drawn to bitmaps using the bundled custom fonts
- * (SF Rail Time for the clock, MiSans for the date/alarm), because home-screen
- * widgets can't reliably apply custom fonts to text views. The clock bitmap is
- * refreshed once a minute via {@link #ACTION_TICK}.
+ * The clock, date and alarm are drawn to bitmaps using the bundled MiSans font
+ * (plus the Material Icons alarm glyph), because home-screen widgets can't reliably
+ * apply custom fonts to text views. The clock bitmap is refreshed once a minute via
+ * {@link #ACTION_TICK}.
  */
 public class C31Widget extends AppWidgetProvider {
 
@@ -45,7 +45,18 @@ public class C31Widget extends AppWidgetProvider {
     public static final String ACTION_REFRESH="com.dosse.clock31.ACTION_REFRESH";
     public static final String ACTION_TICK="com.dosse.clock31.ACTION_TICK";
 
-    private static Typeface clockTypeface, dateTypeface;
+    private static Typeface clockTypeface, dateTypeface, alarmIconTypeface;
+
+    /** Material Icons "alarm" glyph, drawn as a tintable monochrome font glyph. */
+    private static final String ALARM_GLYPH = "\ue855";
+
+    private static Typeface alarmIconTypeface(Context context){
+        if(alarmIconTypeface==null){
+            try{ alarmIconTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/material_alarm.ttf"); }
+            catch(Throwable t){ alarmIconTypeface=Typeface.DEFAULT; }
+        }
+        return alarmIconTypeface;
+    }
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
@@ -140,6 +151,25 @@ public class C31Widget extends AppWidgetProvider {
     }
 
     /**
+     * Renders the next-alarm line: the Material Icons alarm glyph (tinted to {@code
+     * color}, matching the wallpaper-tinted clock/date) followed by the time text,
+     * vertically centered together in one bitmap.
+     */
+    private static Bitmap renderAlarm(Context context, CharSequence timeText, Typeface tf, float textPx, int color){
+        Bitmap iconBmp=renderText(context, ALARM_GLYPH, alarmIconTypeface(context), textPx, null, null, 0f, color);
+        Bitmap textBmp=renderText(context, timeText, tf, textPx, null, null, 0f, color);
+        int gap=Math.round(textPx*0.12f);
+        int w=Math.max(1, iconBmp.getWidth()+gap+textBmp.getWidth());
+        int h=Math.max(1, Math.max(iconBmp.getHeight(), textBmp.getHeight()));
+        Bitmap out=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas cv=new Canvas(out);
+        cv.drawBitmap(iconBmp, 0, (h-iconBmp.getHeight())/2f, null);
+        cv.drawBitmap(textBmp, iconBmp.getWidth()+gap, (h-textBmp.getHeight())/2f, null);
+        out.setDensity(context.getResources().getDisplayMetrics().densityDpi);
+        return out;
+    }
+
+    /**
      * Renders the clock, date and alarm bitmaps into the given RemoteViews and sets
      * the alarm visibility. Returns whether the calendar should be hidden (used by
      * the full update path). Shared by full updates and per-minute ticks.
@@ -153,7 +183,7 @@ public class C31Widget extends AppWidgetProvider {
             int w=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
             clockFontScale=Math.max(0.4f, Math.min(1, Math.min(h, w) / 275f));
             dateFontScale=Math.max(0.7f, Math.min(1, Math.min(h, w) / 275f));
-            if(w<220){ hideAlarm=true; dateFontScale=Math.min(1, dateFontScale*1.25f); }
+            if(w<150){ hideAlarm=true; dateFontScale=Math.min(1, dateFontScale*1.25f); }
             if(h<80){ hideCalendar=true; clockFontScale=Math.min(1, clockFontScale*1.5f); dateFontScale=Math.min(1, dateFontScale*1.25f); }
         }
         if(Build.VERSION.SDK_INT<=Build.VERSION_CODES.N){ clockFontScale=clockFontScale*0.8f; }
@@ -184,9 +214,8 @@ public class C31Widget extends AppWidgetProvider {
             AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
             AlarmManager.AlarmClockInfo alarmClock=am.getNextAlarmClock();
             if(alarmClock!=null){
-                CharSequence alarmText=DateFormat.format(is24?"⏰ E HH:mm":"⏰ E h:mm a", alarmClock.getTriggerTime());
-                views.setImageViewBitmap(R.id.alarm, renderText(context, alarmText, dateTypeface(context), datePx,
-                        null, null, 0f, dateColor));
+                CharSequence alarmText=DateFormat.format(is24?"E HH:mm":"E h:mm a", alarmClock.getTriggerTime());
+                views.setImageViewBitmap(R.id.alarm, renderAlarm(context, alarmText, dateTypeface(context), datePx, dateColor));
                 views.setViewVisibility(R.id.alarm, View.VISIBLE);
             } else {
                 views.setViewVisibility(R.id.alarm, View.GONE);

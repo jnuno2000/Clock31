@@ -95,5 +95,6 @@ jobs:
             * Calendar events are now solid, Google-Calendar-style rounded color blocks with clean white text
             * Removed the calendar icon and left divider column so events span the full width; the list snaps to whole blocks (no clipped rows) and stays scrollable
             * Tapping the clock now opens whichever clock/alarm app you have installed, instead of a single hard-coded one
+            * Next-alarm indicator now uses a wallpaper-tinted alarm icon instead of a color emoji, and shows more reliably
 
             Fonts are bundled under their own licenses (Google Sans: SIL OFL 1.1; MiSans: Xiaomi MiSans Font License) — see THIRD_PARTY_NOTICES.md.

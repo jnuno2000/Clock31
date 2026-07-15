@@ -52,6 +52,7 @@ GPL that covers the app's code:
 - **Google Sans** (calendar) — SIL Open Font License 1.1.
 - **MiSans Latin** (clock and date) — Xiaomi's MiSans Font License, free for use
   in apps.
+- **Material Icons** (alarm glyph) — Apache License 2.0.
 
 See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for details and the full
 license texts (also shipped inside the APK next to the fonts).

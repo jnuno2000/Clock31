@@ -100,7 +100,9 @@ public class C31Widget extends AppWidgetProvider {
             suffixW=sp.measureText(suffixStr);
         }
 
-        int pad=Math.max(2,(int)Math.ceil(mainPx*0.04f));
+        // Keep the same vertical footprint the text had when it carried a shadow, so
+        // removing the shadow doesn't shift the layout and let a calendar block peek in.
+        int pad=(int)Math.ceil(mainPx*0.08f+2f);
         int w=(int)Math.ceil(mainW+gap+suffixW)+pad*2;
         int h=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
         if(w<1) w=1;

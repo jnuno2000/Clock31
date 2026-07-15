@@ -15,6 +15,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.AlarmClock;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -260,6 +261,24 @@ public class C31Widget extends AppWidgetProvider {
         onUpdate(context,AppWidgetManager.getInstance(context),AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, C31Widget.class)));
     }
 
+    /**
+     * Returns an intent that opens the user's clock/alarm app, or null if none is
+     * available. Uses the standard SHOW_ALARMS action so it resolves to whatever
+     * clock app the user actually has (Google Clock, the AOSP/Xiaomi clock, ...)
+     * instead of a hard-coded package that breaks if that app isn't installed.
+     */
+    private static Intent clockAppIntent(Context context) {
+        PackageManager pm = context.getPackageManager();
+        Intent showAlarms = new Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (showAlarms.resolveActivity(pm) != null) return showAlarms;
+        // Fallback: launch a known clock app directly if SHOW_ALARMS isn't handled.
+        for (String pkg : new String[]{"com.google.android.deskclock", "com.android.deskclock"}) {
+            Intent launch = pm.getLaunchIntentForPackage(pkg);
+            if (launch != null) return launch;
+        }
+        return null;
+    }
+
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         try {
@@ -267,11 +286,13 @@ public class C31Widget extends AppWidgetProvider {
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.c31_widget);
             boolean hideCalendar = renderClockDate(context, appWidgetManager, appWidgetId, views, true);
-            PackageManager pm = context.getPackageManager();
             try {
-                PendingIntent openClockApp = PendingIntent.getActivity(context, 0, pm.getLaunchIntentForPackage("com.android.deskclock"), PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
-                views.setOnClickPendingIntent(R.id.clock, openClockApp);
-                views.setOnClickPendingIntent(R.id.alarm, openClockApp);
+                Intent clockIntent = clockAppIntent(context);
+                if (clockIntent != null) {
+                    PendingIntent openClockApp = PendingIntent.getActivity(context, 0, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
+                    views.setOnClickPendingIntent(R.id.clock, openClockApp);
+                    views.setOnClickPendingIntent(R.id.alarm, openClockApp);
+                }
             } catch (Throwable t) {
                 Log.v(TAG, "Failed to register event handler for tapping clock (no app?)");
             }

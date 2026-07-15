@@ -3,3 +3,4 @@ Aspetto rinnovato ispirato alla schermata di blocco di Android 12+ / HyperOS:
 * Orologio e data con il font MiSans della schermata di blocco; calendario con Google Sans
 * Eventi del calendario mostrati come blocchi arrotondati in tinta unita, in stile Google Calendar
 * Rimossi l'icona del calendario e la colonna a sinistra; la lista si adatta a blocchi interi (nessuna riga tagliata) e resta scorrevole
+* Toccando l'orologio si apre l'app orologio/sveglia che hai installato, invece di una sola app predefinita

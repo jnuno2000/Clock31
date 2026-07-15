@@ -80,8 +80,8 @@ public class C31Widget extends AppWidgetProvider {
             if(gsTitleTf==null) gsTitleTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_medium.ttf");
             if(gsTimeTf==null) gsTimeTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_regular.ttf");
         }catch(Throwable t){}
-        return oneLineBitmapHeight(gsTitleTf, 17f*density) + oneLineBitmapHeight(gsTimeTf, 14f*density)
-                + (int)Math.ceil((9f+9f+1f+6f)*density);
+        return oneLineBitmapHeight(gsTitleTf, 15f*density) + oneLineBitmapHeight(gsTimeTf, 12f*density)
+                + (int)Math.ceil((7f+7f+1f+6f)*density);
     }
 
     private static int oneLineBitmapHeight(Typeface tf, float sizePx){
@@ -204,7 +204,7 @@ public class C31Widget extends AppWidgetProvider {
                 // OPTION_APPWIDGET_MAX_HEIGHT under-reports the real widget height on
                 // some launchers (e.g. HyperOS), which left a block of empty space at
                 // the bottom. Add a correction so whole blocks fill the actual space.
-                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() + 40f*density;
+                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() + 16f*density;
                 // blockPx includes one divider; N blocks use N-1 dividers, so the list
                 // is N*blockPx - one divider. Pick the largest N that fits.
                 int n=Math.max(1, (int)Math.floor((availablePx + dividerPx)/(float)blockPx));

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+Rounded rectangle used as the background of a calendar event "block". It is
+drawn (solid white) into an ImageView behind the event text and tinted to the
+event's calendar color at runtime via setColorFilter (see
+CalendarRemoteViewsService). A white fill is required so the color filter
+reproduces the true event color.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#ffffff" />
+    <corners android:radius="10dp" />
+</shape>

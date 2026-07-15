@@ -31,18 +31,6 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
     // Fallback fill used when an event has no calendar color.
     private static final int DEFAULT_EVENT_COLOR = 0xFF757575;
 
-    /**
-     * Returns black or white (at the given alpha) depending on which contrasts
-     * better with the given background color, so event text stays readable on
-     * both light and dark calendar colors.
-     */
-    private static int contrastColor(int bg, int alpha){
-        int r=(bg>>16)&0xff, g=(bg>>8)&0xff, b=bg&0xff;
-        double lum=(0.299*r+0.587*g+0.114*b)/255.0;
-        int base = lum>0.6 ? 0x000000 : 0xffffff;
-        return (alpha<<24) | (base & 0xffffff);
-    }
-
     public CalendarRemoteViewsService() {
     }
 
@@ -192,8 +180,9 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 int blockColor = (data.eventColor >>> 24) == 0 ? DEFAULT_EVENT_COLOR : data.eventColor;
                 v.setViewVisibility(R.id.block_bg, View.VISIBLE);
                 v.setInt(R.id.block_bg, "setColorFilter", blockColor);
-                v.setTextColor(R.id.event_title, contrastColor(blockColor, 0xff));
-                v.setTextColor(R.id.event_date, contrastColor(blockColor, 0xcc));
+                // White text on the colored block, like Google Calendar.
+                v.setTextColor(R.id.event_title, 0xffffffff);
+                v.setTextColor(R.id.event_date, 0xe6ffffff);
                 Intent openEvent=new Intent();
                 openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
                 openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK

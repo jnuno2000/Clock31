@@ -39,6 +39,10 @@
             android:textFontWeight="500"
             android:maxLines="1"
             android:ellipsize="end"
+            android:shadowColor="#66000000"
+            android:shadowRadius="2.5"
+            android:shadowDx="0"
+            android:shadowDy="1"
             />
 
         <TextView
@@ -51,6 +55,10 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:layout_marginTop="1dp"
+            android:shadowColor="#66000000"
+            android:shadowRadius="2.5"
+            android:shadowDx="0"
+            android:shadowDy="1"
             />
 
     </LinearLayout>

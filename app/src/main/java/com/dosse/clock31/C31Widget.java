@@ -15,6 +15,7 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 import android.text.format.DateFormat;
@@ -33,6 +34,11 @@ public class C31Widget extends AppWidgetProvider {
     private static final String TAG="C31WidgetProvider";
 
     public static boolean updatePending =false;
+
+    // Exact height (px) of one calendar block incl. its gap, reported by
+    // CalendarRemoteViewsService once it has rendered a real event. Used to size the
+    // calendar list to a whole number of blocks so no partial block shows at rest.
+    public static volatile int calendarBlockHeightPx = 0;
 
     public static final String ACTION_REFRESH="com.dosse.clock31.ACTION_REFRESH";
     public static final String ACTION_TICK="com.dosse.clock31.ACTION_TICK";
@@ -58,6 +64,31 @@ public class C31Widget extends AppWidgetProvider {
     private static int resolveColor(Context context, int resId){
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) return context.getColor(resId);
         return context.getResources().getColor(resId);
+    }
+
+    private static Typeface gsTitleTf, gsTimeTf;
+
+    /**
+     * Height (px) of one calendar block, mirroring CalendarRemoteViewsService's event
+     * bitmap sizing (Google Sans title 15sp + time 12sp + padding 9+9, title/time
+     * margin 1, divider 6). Used to pre-size the list before the calendar has rendered.
+     */
+    private static int computeCalendarBlockHeightPx(Context context, float density){
+        try{
+            if(gsTitleTf==null) gsTitleTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_medium.ttf");
+            if(gsTimeTf==null) gsTimeTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_regular.ttf");
+        }catch(Throwable t){}
+        return oneLineBitmapHeight(gsTitleTf, 15f*density) + oneLineBitmapHeight(gsTimeTf, 12f*density)
+                + (int)Math.ceil((9f+9f+1f+6f)*density);
+    }
+
+    private static int oneLineBitmapHeight(Typeface tf, float sizePx){
+        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setTypeface(tf!=null?tf:Typeface.DEFAULT);
+        p.setTextSize(sizePx);
+        Paint.FontMetrics fm=p.getFontMetrics();
+        int pad=Math.max(2,(int)Math.ceil(sizePx*0.06f)); // matches renderEventText's pad
+        return (int)Math.ceil(fm.descent-fm.ascent)+pad*2;
     }
 
     /**
@@ -107,7 +138,7 @@ public class C31Widget extends AppWidgetProvider {
      * the alarm visibility. Returns whether the calendar should be hidden (used by
      * the full update path). Shared by full updates and per-minute ticks.
      */
-    private static boolean renderClockDate(Context context, AppWidgetManager appWidgetManager, int appWidgetId, RemoteViews views){
+    private static boolean renderClockDate(Context context, AppWidgetManager appWidgetManager, int appWidgetId, RemoteViews views, boolean sizeCalendar){
         boolean hideAlarm=false, hideCalendar=false;
         float clockFontScale=1f, dateFontScale=1f;
         Bundle options=appWidgetManager.getAppWidgetOptions(appWidgetId);
@@ -157,6 +188,21 @@ public class C31Widget extends AppWidgetProvider {
         } else {
             views.setViewVisibility(R.id.alarm, View.GONE);
         }
+
+        // Size the calendar list to a whole number of blocks so no clipped partial
+        // block shows when it isn't scrolled (the full list is still scrollable).
+        if(sizeCalendar && options!=null && Build.VERSION.SDK_INT>=Build.VERSION_CODES.S){
+            int widgetHdp=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT);
+            int blockPx=calendarBlockHeightPx>0 ? calendarBlockHeightPx : computeCalendarBlockHeightPx(context, density);
+            int dividerPx=(int)Math.ceil(6f*density);
+            if(widgetHdp>0 && blockPx>dividerPx){
+                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 24f*density;
+                // blockPx includes one divider; N blocks use N-1 dividers, so the list
+                // is N*blockPx - one divider. Pick the largest N that fits.
+                int n=Math.max(1, (int)Math.floor((availablePx + dividerPx)/(float)blockPx));
+                views.setViewLayoutHeight(R.id.calendar, Math.max(1, n*blockPx - dividerPx), TypedValue.COMPLEX_UNIT_PX);
+            }
+        }
         return hideCalendar;
     }
 
@@ -181,7 +227,7 @@ public class C31Widget extends AppWidgetProvider {
             int[] ids=appWidgetManager.getAppWidgetIds(new ComponentName(context, C31Widget.class));
             for(int id : ids){
                 RemoteViews views=new RemoteViews(context.getPackageName(), R.layout.c31_widget);
-                renderClockDate(context, appWidgetManager, id, views);
+                renderClockDate(context, appWidgetManager, id, views, false);
                 appWidgetManager.partiallyUpdateAppWidget(id, views);
             }
         }catch(Throwable t){
@@ -212,7 +258,7 @@ public class C31Widget extends AppWidgetProvider {
             Log.v(TAG, "updateAppWidget: " + appWidgetId);
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.c31_widget);
-            boolean hideCalendar = renderClockDate(context, appWidgetManager, appWidgetId, views);
+            boolean hideCalendar = renderClockDate(context, appWidgetManager, appWidgetId, views, true);
             PackageManager pm = context.getPackageManager();
             try {
                 PendingIntent openClockApp = PendingIntent.getActivity(context, 0, pm.getLaunchIntentForPackage("com.android.deskclock"), PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));

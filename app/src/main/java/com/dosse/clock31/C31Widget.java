@@ -41,7 +41,19 @@ public class C31Widget extends AppWidgetProvider {
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
-            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/sf_rail_time.ttf"); }
+            try{
+                // Playfair Display is a variable font; pick a bold weight to match the
+                // high-contrast serif of the HyperOS lock-screen clock.
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                    clockTypeface=new Typeface.Builder(context.getAssets(),"fonts/playfair_display.ttf")
+                            .setFontVariationSettings("'wght' 800")
+                            .setWeight(800)
+                            .build();
+                }
+                if(clockTypeface==null){
+                    clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/playfair_display.ttf");
+                }
+            }
             catch(Throwable t){ clockTypeface=Typeface.DEFAULT; }
         }
         return clockTypeface;

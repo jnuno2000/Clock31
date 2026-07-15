@@ -41,21 +41,7 @@ public class C31Widget extends AppWidgetProvider {
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
-            try{
-                // Bodoni Moda is a variable font; a narrow, high-contrast Didone that
-                // matches the HyperOS lock-screen serif clock better than a wide face.
-                // opsz 96 = display optical size (hairline thins); wght 600 for the
-                // substantial thick strokes.
-                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                    clockTypeface=new Typeface.Builder(context.getAssets(),"fonts/bodoni_moda.ttf")
-                            .setFontVariationSettings("'wght' 600, 'opsz' 96")
-                            .setWeight(600)
-                            .build();
-                }
-                if(clockTypeface==null){
-                    clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/bodoni_moda.ttf");
-                }
-            }
+            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans.ttf"); }
             catch(Throwable t){ clockTypeface=Typeface.DEFAULT; }
         }
         return clockTypeface;
@@ -148,7 +134,7 @@ public class C31Widget extends AppWidgetProvider {
         CharSequence timeText=DateFormat.format(is24?"HH:mm":"h:mm", now);
         CharSequence ampm=is24?null:DateFormat.format("a", now);
         views.setImageViewBitmap(R.id.clock, renderText(context, timeText, clockTypeface(context), clockPx,
-                ampm, Typeface.DEFAULT, clockPx*0.42f, clockColor));
+                ampm, clockTypeface(context), clockPx*0.5f, clockColor));
 
         // Date in MiSans.
         float datePx=18f*dateFontScale*density;

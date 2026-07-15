@@ -71,15 +71,16 @@ public class C31Widget extends AppWidgetProvider {
 
     /**
      * Height (px) of one calendar block, mirroring CalendarRemoteViewsService's event
-     * bitmap sizing (Google Sans title 15sp + time 12sp + padding 9+9, title/time
-     * margin 1, divider 6). Used to pre-size the list before the calendar has rendered.
+     * bitmap sizing (Google Sans title + time + padding 9+9, title/time margin 1,
+     * divider 6). Sizes must match renderEventText. Used to pre-size the list before
+     * the calendar has rendered.
      */
     private static int computeCalendarBlockHeightPx(Context context, float density){
         try{
             if(gsTitleTf==null) gsTitleTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_medium.ttf");
             if(gsTimeTf==null) gsTimeTf=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_regular.ttf");
         }catch(Throwable t){}
-        return oneLineBitmapHeight(gsTitleTf, 15f*density) + oneLineBitmapHeight(gsTimeTf, 12f*density)
+        return oneLineBitmapHeight(gsTitleTf, 17f*density) + oneLineBitmapHeight(gsTimeTf, 14f*density)
                 + (int)Math.ceil((9f+9f+1f+6f)*density);
     }
 
@@ -171,7 +172,7 @@ public class C31Widget extends AppWidgetProvider {
         views.setImageViewBitmap(R.id.clock, clockBmp);
 
         // Date in MiSans, formatted like the lock screen (e.g. "Jul 15, Wed").
-        float datePx=18f*dateFontScale*density;
+        float datePx=22f*dateFontScale*density;
         CharSequence dateText=DateFormat.format("MMM d, EEE", now);
         Bitmap dateBmp=renderText(context, dateText, dateTypeface(context), datePx,
                 null, null, 0f, dateColor);
@@ -200,7 +201,10 @@ public class C31Widget extends AppWidgetProvider {
             int blockPx=calendarBlockHeightPx>0 ? calendarBlockHeightPx : computeCalendarBlockHeightPx(context, density);
             int dividerPx=(int)Math.ceil(6f*density);
             if(widgetHdp>0 && blockPx>dividerPx){
-                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 8f*density;
+                // OPTION_APPWIDGET_MAX_HEIGHT under-reports the real widget height on
+                // some launchers (e.g. HyperOS), which left a block of empty space at
+                // the bottom. Add a correction so whole blocks fill the actual space.
+                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() + 40f*density;
                 // blockPx includes one divider; N blocks use N-1 dividers, so the list
                 // is N*blockPx - one divider. Pick the largest N that fits.
                 int n=Math.max(1, (int)Math.floor((availablePx + dividerPx)/(float)blockPx));

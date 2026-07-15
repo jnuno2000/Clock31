@@ -8,9 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
+import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
@@ -76,6 +82,55 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
 
         public CalendarRemoteViewsFactory(Context context) {
             this.context = context;
+        }
+
+        private Typeface titleTypeface, timeTypeface;
+
+        private Typeface titleTypeface(){
+            if(titleTypeface==null){
+                try{ titleTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_medium.ttf"); }
+                catch(Throwable t){ titleTypeface=Typeface.DEFAULT; }
+            }
+            return titleTypeface;
+        }
+
+        private Typeface timeTypeface(){
+            if(timeTypeface==null){
+                try{ timeTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/google_sans_regular.ttf"); }
+                catch(Throwable t){ timeTypeface=Typeface.DEFAULT; }
+            }
+            return timeTypeface;
+        }
+
+        /** Renders one line of event text (in Google Sans) to a bitmap, ellipsized to the block width. */
+        private Bitmap renderEventText(CharSequence text, Typeface tf, float sizePx, int color, float maxWidthPx){
+            TextPaint tp=new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            tp.setColor(color);
+            tp.setTypeface(tf);
+            tp.setTextSize(sizePx);
+            float shadowR=Math.max(1.5f, sizePx*0.08f);
+            tp.setShadowLayer(shadowR, 0, Math.max(1f, sizePx*0.05f), 0x66000000);
+            CharSequence shown=TextUtils.ellipsize(text==null?"":text, tp, Math.max(1f, maxWidthPx), TextUtils.TruncateAt.END);
+            String s=shown.toString();
+            Paint.FontMetrics fm=tp.getFontMetrics();
+            float w=tp.measureText(s);
+            int pad=(int)Math.ceil(shadowR+2f);
+            int bw=(int)Math.ceil(w)+pad*2;
+            int bh=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
+            if(bw<1) bw=1;
+            if(bh<1) bh=1;
+            Bitmap bmp=Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888);
+            Canvas cv=new Canvas(bmp);
+            cv.drawText(s, pad, pad-fm.ascent, tp);
+            bmp.setDensity(context.getResources().getDisplayMetrics().densityDpi);
+            return bmp;
+        }
+
+        /** Approximate width available for event text inside a block. */
+        private float eventTextMaxWidth(){
+            float density=context.getResources().getDisplayMetrics().density;
+            float w=context.getResources().getDisplayMetrics().widthPixels - 60f*density;
+            return Math.max(1f, w);
         }
 
         private static final long HOUR_IN_MS=60*60*1000;
@@ -161,7 +216,9 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
                 CalendarListEntry data=entries.get(i);
                 if(data==null) return null;
-                v.setTextViewText(R.id.event_title,data.eventTitle);
+                float density=context.getResources().getDisplayMetrics().density;
+                float maxW=eventTextMaxWidth();
+                v.setImageViewBitmap(R.id.event_title, renderEventText(data.eventTitle, titleTypeface(), 13f*density, 0xffffffff, maxW));
                 String formattedDate;
                 if(data.eventAllDay){
                     if(data.eventEnd-data.eventBegin>DAY_IN_MS){
@@ -176,13 +233,10 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                         formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
                     }
                 }
-                v.setTextViewText(R.id.event_date,formattedDate);
+                v.setImageViewBitmap(R.id.event_date, renderEventText(formattedDate, timeTypeface(), 11f*density, 0xe6ffffff, maxW));
                 int blockColor = (data.eventColor >>> 24) == 0 ? DEFAULT_EVENT_COLOR : data.eventColor;
                 v.setViewVisibility(R.id.block_bg, View.VISIBLE);
                 v.setInt(R.id.block_bg, "setColorFilter", blockColor);
-                // White text on the colored block, like Google Calendar.
-                v.setTextColor(R.id.event_title, 0xffffffff);
-                v.setTextColor(R.id.event_date, 0xe6ffffff);
                 Intent openEvent=new Intent();
                 openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
                 openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -194,11 +248,11 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 return v;
             }else{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
-                v.setTextViewText(R.id.event_title,getString(R.string.no_events));
-                v.setTextViewText(R.id.event_date,getString(R.string.tap_calendar));
+                float density=context.getResources().getDisplayMetrics().density;
+                float maxW=eventTextMaxWidth();
+                v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 13f*density, 0xffffffff, maxW));
+                v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 11f*density, 0xe6ffffff, maxW));
                 v.setViewVisibility(R.id.block_bg, View.INVISIBLE);
-                v.setTextColor(R.id.event_title, 0xffffffff);
-                v.setTextColor(R.id.event_date, 0xffffffff);
                 return v;
             }
         }

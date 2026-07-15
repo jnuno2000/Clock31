@@ -108,13 +108,11 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
             tp.setColor(color);
             tp.setTypeface(tf);
             tp.setTextSize(sizePx);
-            float shadowR=Math.max(1.5f, sizePx*0.08f);
-            tp.setShadowLayer(shadowR, 0, Math.max(1f, sizePx*0.05f), 0x66000000);
             CharSequence shown=TextUtils.ellipsize(text==null?"":text, tp, Math.max(1f, maxWidthPx), TextUtils.TruncateAt.END);
             String s=shown.toString();
             Paint.FontMetrics fm=tp.getFontMetrics();
             float w=tp.measureText(s);
-            int pad=(int)Math.ceil(shadowR+2f);
+            int pad=Math.max(2,(int)Math.ceil(sizePx*0.06f));
             int bw=(int)Math.ceil(w)+pad*2;
             int bh=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
             if(bw<1) bw=1;
@@ -218,7 +216,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 if(data==null) return null;
                 float density=context.getResources().getDisplayMetrics().density;
                 float maxW=eventTextMaxWidth();
-                v.setImageViewBitmap(R.id.event_title, renderEventText(data.eventTitle, titleTypeface(), 13f*density, 0xffffffff, maxW));
+                v.setImageViewBitmap(R.id.event_title, renderEventText(data.eventTitle, titleTypeface(), 15f*density, 0xffffffff, maxW));
                 String formattedDate;
                 if(data.eventAllDay){
                     if(data.eventEnd-data.eventBegin>DAY_IN_MS){
@@ -233,7 +231,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                         formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
                     }
                 }
-                v.setImageViewBitmap(R.id.event_date, renderEventText(formattedDate, timeTypeface(), 11f*density, 0xe6ffffff, maxW));
+                v.setImageViewBitmap(R.id.event_date, renderEventText(formattedDate, timeTypeface(), 12f*density, 0xe6ffffff, maxW));
                 int blockColor = (data.eventColor >>> 24) == 0 ? DEFAULT_EVENT_COLOR : data.eventColor;
                 v.setViewVisibility(R.id.block_bg, View.VISIBLE);
                 v.setInt(R.id.block_bg, "setColorFilter", blockColor);
@@ -250,8 +248,8 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
                 float density=context.getResources().getDisplayMetrics().density;
                 float maxW=eventTextMaxWidth();
-                v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 13f*density, 0xffffffff, maxW));
-                v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 11f*density, 0xe6ffffff, maxW));
+                v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 15f*density, 0xffffffff, maxW));
+                v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 12f*density, 0xe6ffffff, maxW));
                 v.setViewVisibility(R.id.block_bg, View.INVISIBLE);
                 return v;
             }

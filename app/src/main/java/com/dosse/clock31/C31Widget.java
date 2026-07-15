@@ -27,7 +27,7 @@ import android.text.format.DateFormat;
  * App Widget Configuration implemented in {@link C31WidgetConfigureActivity C31WidgetConfigureActivity}
  *
  * The clock, date and alarm are drawn to bitmaps using the bundled MiSans font
- * (plus a code-drawn alarm-clock icon), because home-screen widgets can't reliably
+ * (plus the Material Icons alarm glyph), because home-screen widgets can't reliably
  * apply custom fonts to text views. The clock bitmap is refreshed once a minute via
  * {@link #ACTION_TICK}.
  */
@@ -45,7 +45,18 @@ public class C31Widget extends AppWidgetProvider {
     public static final String ACTION_REFRESH="com.dosse.clock31.ACTION_REFRESH";
     public static final String ACTION_TICK="com.dosse.clock31.ACTION_TICK";
 
-    private static Typeface clockTypeface, dateTypeface;
+    private static Typeface clockTypeface, dateTypeface, alarmIconTypeface;
+
+    /** Material Icons "alarm" glyph, drawn as a tintable monochrome font glyph. */
+    private static final String ALARM_GLYPH = "\ue855";
+
+    private static Typeface alarmIconTypeface(Context context){
+        if(alarmIconTypeface==null){
+            try{ alarmIconTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/material_alarm.ttf"); }
+            catch(Throwable t){ alarmIconTypeface=Typeface.DEFAULT; }
+        }
+        return alarmIconTypeface;
+    }
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
@@ -140,41 +151,20 @@ public class C31Widget extends AppWidgetProvider {
     }
 
     /**
-     * Draws a small monochrome alarm-clock glyph, tinted to {@code color}, inside the
-     * given square box. Used instead of a color emoji so the alarm indicator matches
-     * the wallpaper-tinted clock and date.
-     */
-    private static void drawAlarmIcon(Canvas cv, float left, float top, float size, int color){
-        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(color);
-        p.setStyle(Paint.Style.STROKE);
-        p.setStrokeCap(Paint.Cap.ROUND);
-        p.setStrokeJoin(Paint.Join.ROUND);
-        p.setStrokeWidth(size*0.085f);
-        float cx=left+size*0.5f, cy=top+size*0.55f, r=size*0.30f;
-        cv.drawCircle(cx, cy, r, p);                                       // clock body
-        cv.drawLine(cx-r*0.72f, cy-r*0.72f, cx-r*1.08f, cy-r*1.08f, p);    // left bell
-        cv.drawLine(cx+r*0.72f, cy-r*0.72f, cx+r*1.08f, cy-r*1.08f, p);    // right bell
-        cv.drawLine(cx-r*0.62f, cy+r*0.80f, cx-r*0.92f, cy+r*1.06f, p);    // left foot
-        cv.drawLine(cx+r*0.62f, cy+r*0.80f, cx+r*0.92f, cy+r*1.06f, p);    // right foot
-        cv.drawLine(cx, cy, cx, cy-r*0.55f, p);                           // minute hand
-        cv.drawLine(cx, cy, cx+r*0.42f, cy+r*0.05f, p);                   // hour hand
-    }
-
-    /**
-     * Renders the next-alarm line: a tinted alarm-clock icon followed by the time text,
+     * Renders the next-alarm line: the Material Icons alarm glyph (tinted to {@code
+     * color}, matching the wallpaper-tinted clock/date) followed by the time text,
      * vertically centered together in one bitmap.
      */
     private static Bitmap renderAlarm(Context context, CharSequence timeText, Typeface tf, float textPx, int color){
+        Bitmap iconBmp=renderText(context, ALARM_GLYPH, alarmIconTypeface(context), textPx, null, null, 0f, color);
         Bitmap textBmp=renderText(context, timeText, tf, textPx, null, null, 0f, color);
-        int iconSize=Math.max(1, Math.round(textPx*0.82f));
-        int gap=Math.round(textPx*0.16f);
-        int w=Math.max(1, iconSize+gap+textBmp.getWidth());
-        int h=Math.max(1, Math.max(iconSize, textBmp.getHeight()));
+        int gap=Math.round(textPx*0.12f);
+        int w=Math.max(1, iconBmp.getWidth()+gap+textBmp.getWidth());
+        int h=Math.max(1, Math.max(iconBmp.getHeight(), textBmp.getHeight()));
         Bitmap out=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas cv=new Canvas(out);
-        drawAlarmIcon(cv, 0, (h-iconSize)/2f, iconSize, color);
-        cv.drawBitmap(textBmp, iconSize+gap, (h-textBmp.getHeight())/2f, null);
+        cv.drawBitmap(iconBmp, 0, (h-iconBmp.getHeight())/2f, null);
+        cv.drawBitmap(textBmp, iconBmp.getWidth()+gap, (h-textBmp.getHeight())/2f, null);
         out.setDensity(context.getResources().getDisplayMetrics().densityDpi);
         return out;
     }

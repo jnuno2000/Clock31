@@ -8,7 +8,7 @@
     <!--
     Solid, rounded color block behind the text. The white shape is tinted to the
     event's calendar color at runtime (setColorFilter), so each event looks like a
-    Google-Calendar colored chip. The text color is chosen for contrast in code.
+    Google-Calendar colored chip.
     -->
     <ImageView
         android:id="@+id/block_bg"
@@ -19,6 +19,10 @@
         android:contentDescription="@null"
         />
 
+    <!--
+    Title and time are ImageViews holding bitmaps rendered in Google Sans
+    (CalendarRemoteViewsService), because widget text views can't use custom fonts.
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,36 +33,21 @@
         android:paddingBottom="4dp"
         >
 
-        <TextView
-            android:layout_width="match_parent"
+        <ImageView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/event_title"
-            android:text="Event title"
-            android:textColor="#ffffff"
-            android:textSize="13dp"
-            android:textFontWeight="500"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:shadowColor="#66000000"
-            android:shadowRadius="2.5"
-            android:shadowDx="0"
-            android:shadowDy="1"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
             />
 
-        <TextView
-            android:layout_width="match_parent"
+        <ImageView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/event_date"
-            android:text="From - To"
-            android:textColor="#e0ffffff"
-            android:textSize="11dp"
-            android:maxLines="1"
-            android:ellipsize="end"
+            android:adjustViewBounds="true"
             android:layout_marginTop="1dp"
-            android:shadowColor="#66000000"
-            android:shadowRadius="2.5"
-            android:shadowDx="0"
-            android:shadowDy="1"
+            android:contentDescription="@null"
             />
 
     </LinearLayout>

@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+    Base colors used all over the widget. On Android 12+ (API 31) these are
+    overridden in values-v31/colors.xml with wallpaper-derived Material You colors
+    so the widget matches the lock screen. On older versions the classic
+    white/gray look below is used.
+    -->
+    <color name="widget_clock_color">#ffffff</color>
+    <color name="widget_date_color">#ffffff</color>
+    <color name="widget_event_time_color">#c0c0c0</color>
 </resources>

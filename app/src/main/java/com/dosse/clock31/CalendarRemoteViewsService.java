@@ -15,6 +15,7 @@ import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 import android.os.Process;
@@ -173,7 +174,8 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                     }
                 }
                 v.setTextViewText(R.id.event_date,formattedDate);
-                v.setInt(R.id.color_bar,"setBackgroundColor",data.eventColor);
+                v.setViewVisibility(R.id.color_dot, View.VISIBLE);
+                v.setInt(R.id.color_dot,"setColorFilter",data.eventColor);
                 Intent openEvent=new Intent();
                 openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
                 openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -187,7 +189,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
                 v.setTextViewText(R.id.event_title,getString(R.string.no_events));
                 v.setTextViewText(R.id.event_date,getString(R.string.tap_calendar));
-                v.setInt(R.id.color_bar,"setBackgroundColor",0x00000000);
+                v.setViewVisibility(R.id.color_dot, View.INVISIBLE);
                 return v;
             }
         }

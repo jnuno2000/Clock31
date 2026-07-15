@@ -1,0 +1,93 @@
+name: Release
+
+# Builds the APK on GitHub's runners (which have the Android SDK) and, when a
+# version tag like v1.1.0 is pushed, publishes a GitHub Release with the APK
+# attached. Can also be run manually (workflow_dispatch) to just build the APK.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag to create (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-32" "build-tools;33.0.1" "build-tools;32.0.0"
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${GITHUB_REF}" != "${GITHUB_REF#refs/tags/}" ]; then
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build release APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Sign APK
+        run: |
+          KEYSTORE="$RUNNER_TEMP/release.jks"
+          keytool -genkeypair -v -keystore "$KEYSTORE" -alias clock31 \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Clock 31, O=Clock 31, C=US"
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)"
+          UNSIGNED="app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED="$RUNNER_TEMP/aligned.apk"
+          OUT="Clock31-${{ steps.version.outputs.version }}.apk"
+          "$BT/zipalign" -v 4 "$UNSIGNED" "$ALIGNED"
+          "$BT/apksigner" sign \
+            --ks "$KEYSTORE" --ks-pass pass:android \
+            --ks-key-alias clock31 --key-pass pass:android \
+            --out "$OUT" "$ALIGNED"
+          "$BT/apksigner" verify --verbose "$OUT"
+          echo "APK=$OUT" >> "$GITHUB_ENV"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Clock31-apk
+          path: ${{ env.APK }}
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Clock 31 ${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          files: ${{ env.APK }}
+          fail_on_unmatched_files: true
+          body: |
+            * Clock and date now match the Android 12+ lock screen, tinted from your wallpaper (Material You)
+            * Redesigned calendar list with rounded event-color dots and a cleaner layout
+            * Older Android versions keep the classic white look

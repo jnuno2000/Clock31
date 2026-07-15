@@ -4,87 +4,46 @@
     android:theme="@style/Theme.Clock31.AppWidgetContainer"
     >
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!--
+    Clock, date and alarm are ImageViews holding bitmaps rendered in code
+    (C31Widget) using the bundled custom fonts. This is required because
+    home-screen widgets (RemoteViews) can't reliably apply custom fonts to text
+    views. The clock bitmap is redrawn every minute via an alarm.
+    -->
+    <ImageView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/clock_container"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal"
-        >
-
-        <TextClock
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/clock"
-            android:textSize="80dp"
-            android:fontFamily="@font/sf_rail_time"
-            android:textColor="@color/widget_clock_color"
-            android:shadowColor="#000000"
-            android:shadowRadius="5"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:format24Hour="HH:mm"
-            android:format12Hour="h:mm"
-            android:text="TI:ME"
-            />
-
-        <TextClock
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/clock_ampm"
-            android:textSize="26dp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/widget_clock_color"
-            android:shadowColor="#000000"
-            android:shadowRadius="5"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:layout_marginStart="4dp"
-            android:format24Hour=" "
-            android:format12Hour="a"
-            android:text="AM"
-            android:visibility="gone"
-            />
-
-    </LinearLayout>
+        android:id="@+id/clock"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/clock_container"
+        android:layout_below="@id/clock"
         android:gravity="center_horizontal"
         android:id="@+id/date_alarm_container"
         >
 
-        <TextClock
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/date"
-            android:textSize="18dp"
-            android:fontFamily="@font/mi_sans"
-            android:textColor="@color/widget_date_color"
-            android:shadowColor="#000000"
-            android:shadowRadius="4"
-            android:shadowDx="1.5"
-            android:shadowDy="1.5"
-            android:format24Hour="EE, d MMMM"
-            android:format12Hour="EE, d MMMM"
-            android:text="Date"
+            android:adjustViewBounds="true"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@null"
             />
 
-        <TextView
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/alarm"
-            android:textSize="18dp"
-            android:fontFamily="@font/mi_sans"
-            android:textColor="@color/widget_date_color"
-            android:shadowColor="#000000"
-            android:shadowRadius="4"
-            android:shadowDx="1.5"
-            android:shadowDy="1.5"
-            android:layout_marginStart="18dp"
-            android:text="Next alarm"
+            android:adjustViewBounds="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="12dp"
+            android:contentDescription="@null"
             android:visibility="gone"
             />
 

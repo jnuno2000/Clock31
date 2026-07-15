@@ -33,6 +33,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="com.android.deskclock.NEXT_ALARM_TIME_SET"/>
                 <action android:name="com.dosse.clock31.ACTION_REFRESH"/>
+                <action android:name="com.dosse.clock31.ACTION_TICK"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED"/>

@@ -1,22 +1,34 @@
 # Clock 31
-![Screenshot](.github/screenshot1.png)
+
+![Screenshot](.github/screenshot-newlook.jpg)
 
 Clock 31 is a Clock + Calendar combo widget for Android, inspired by (but not forked from) the cLock widget found in old versions of LineageOS.
 
-The widget shows the current time and date, the next alarm (if any), and upcoming events for all your calendars (the colors on the left indicates the calendar to which they belong). Some useful shortcuts are also provided: tapping the clock will bring you to the clock and alarm app, tapping the calendar icon will open the calendar, tapping an event will bring you to the details of that event.
+This is a personal fork with a restyled look inspired by the Android 12+ / HyperOS lock screen: the clock and date pick up a color from your wallpaper (Material You), and the calendar is shown as solid, Google-Calendar-style colored blocks.
+
+The widget shows the current time and date, the next alarm (if any), and upcoming events from all your calendars. Each event is drawn as a rounded block in its calendar's color. Some useful shortcuts are also provided: tapping the clock opens the clock and alarm app, and tapping an event opens that event in your calendar.
+
+## What's new in this fork
+
+- **Wallpaper-based color** — on Android 12 and newer, the clock and date are tinted from your wallpaper (the same Material You palette the lock screen uses). Older Android versions keep the classic white look.
+- **Lock-screen-style fonts** — the clock and date use MiSans (the HyperOS look); the calendar uses Google Sans, like Google Calendar. Because home-screen widgets can't apply custom fonts to text directly, these are rendered to images in code.
+- **Google-Calendar-style events** — each event is a solid rounded block in its calendar color with clean white text, instead of a plain list with a color bar.
+- **Cleaner layout** — the calendar icon and the left divider column were removed so events span the full width, and the list snaps to whole blocks so no partial row is clipped (it's still scrollable).
 
 ## Download
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.dosse.clock31/)
+This fork is distributed as a **GitHub Release** on this repository — grab the APK from the [Releases page](../../releases). The wallpaper color activates automatically on Android 12+; no setup or settings.
 
-Or [download the APK](https://downloads.fdossena.com/geth.php?r=clock31-apk).
+> The original app by Federico Dossena is on F-Droid at
+> [`com.dosse.clock31`](https://f-droid.org/packages/com.dosse.clock31/). This fork
+> is not affiliated with the F-Droid listing.
 
 ## Compatibility
-Android 5.0 (SDK 21) or newer
+
+Android 5.0 (SDK 21) or newer. The wallpaper-derived clock/date color requires Android 12 (SDK 31) or newer; on older versions the clock and date are white.
 
 ## License
+
 Copyright (C) 2022 Federico Dossena
 
 This program is free software: you can redistribute it and/or modify
@@ -31,3 +43,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+### Bundled fonts
+
+This fork bundles third-party fonts under their own licenses, separate from the
+GPL that covers the app's code:
+
+- **Google Sans** (calendar) — SIL Open Font License 1.1.
+- **MiSans Latin** (clock and date) — Xiaomi's MiSans Font License, free for use
+  in apps.
+
+See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for details and the full
+license texts (also shipped inside the APK next to the fonts).

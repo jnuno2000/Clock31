@@ -9,6 +9,12 @@
     <uses-permission android:name="android.permission.SET_ALARM" /> <!--probably not necessary-->
 
     <queries>
+        <!-- So tapping the clock can open whatever clock/alarm app the user has,
+             not a single hard-coded package. -->
+        <intent>
+            <action android:name="android.intent.action.SHOW_ALARMS" />
+        </intent>
+        <package android:name="com.google.android.deskclock" />
         <package android:name="com.android.deskclock" />
     </queries>
 

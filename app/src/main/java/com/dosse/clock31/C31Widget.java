@@ -42,16 +42,18 @@ public class C31Widget extends AppWidgetProvider {
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
             try{
-                // Playfair Display is a variable font; pick a bold weight to match the
-                // high-contrast serif of the HyperOS lock-screen clock.
+                // Bodoni Moda is a variable font; a narrow, high-contrast Didone that
+                // matches the HyperOS lock-screen serif clock better than a wide face.
+                // opsz 96 = display optical size (hairline thins); wght 600 for the
+                // substantial thick strokes.
                 if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                    clockTypeface=new Typeface.Builder(context.getAssets(),"fonts/playfair_display.ttf")
-                            .setFontVariationSettings("'wght' 800")
-                            .setWeight(800)
+                    clockTypeface=new Typeface.Builder(context.getAssets(),"fonts/bodoni_moda.ttf")
+                            .setFontVariationSettings("'wght' 600, 'opsz' 96")
+                            .setWeight(600)
                             .build();
                 }
                 if(clockTypeface==null){
-                    clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/playfair_display.ttf");
+                    clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/bodoni_moda.ttf");
                 }
             }
             catch(Throwable t){ clockTypeface=Typeface.DEFAULT; }

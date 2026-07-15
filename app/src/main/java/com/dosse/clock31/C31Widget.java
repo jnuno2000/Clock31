@@ -34,6 +34,12 @@ public class C31Widget extends AppWidgetProvider {
 
     public static boolean updatePending =false;
 
+    // How many whole calendar blocks fit in the current widget height. Computed by
+    // the provider (which knows the widget size and the clock/date bitmap heights)
+    // and read by CalendarRemoteViewsService.getCount() so the list never renders a
+    // clipped partial block. Shared via static because both run in the same process.
+    public static volatile int maxCalendarBlocks = 3;
+
     public static final String ACTION_REFRESH="com.dosse.clock31.ACTION_REFRESH";
     public static final String ACTION_TICK="com.dosse.clock31.ACTION_TICK";
 
@@ -41,7 +47,7 @@ public class C31Widget extends AppWidgetProvider {
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
-            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans.ttf"); }
+            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans_light.ttf"); }
             catch(Throwable t){ clockTypeface=Typeface.DEFAULT; }
         }
         return clockTypeface;
@@ -86,9 +92,7 @@ public class C31Widget extends AppWidgetProvider {
             suffixW=sp.measureText(suffixStr);
         }
 
-        // Keep the same vertical footprint the text had when it carried a shadow, so
-        // removing the shadow doesn't shift the layout and let a calendar block peek in.
-        int pad=(int)Math.ceil(mainPx*0.08f+2f);
+        int pad=(int)Math.ceil(mainPx*0.03f+2f);
         int w=(int)Math.ceil(mainW+gap+suffixW)+pad*2;
         int h=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
         if(w<1) w=1;
@@ -129,18 +133,32 @@ public class C31Widget extends AppWidgetProvider {
         int clockColor=resolveColor(context, R.color.widget_clock_color);
         int dateColor=resolveColor(context, R.color.widget_date_color);
 
-        // Clock: digits in the rail font, AM/PM (12h only) in the default font.
+        // Clock: digits + AM/PM (12h only) in the clock font.
         float clockPx=(is24?80f:60f)*clockFontScale*density;
         CharSequence timeText=DateFormat.format(is24?"HH:mm":"h:mm", now);
         CharSequence ampm=is24?null:DateFormat.format("a", now);
-        views.setImageViewBitmap(R.id.clock, renderText(context, timeText, clockTypeface(context), clockPx,
-                ampm, clockTypeface(context), clockPx*0.5f, clockColor));
+        Bitmap clockBmp=renderText(context, timeText, clockTypeface(context), clockPx,
+                ampm, clockTypeface(context), clockPx*0.5f, clockColor);
+        views.setImageViewBitmap(R.id.clock, clockBmp);
 
-        // Date in MiSans.
+        // Date in MiSans, formatted like the lock screen (e.g. "Jul 15, Wed").
         float datePx=18f*dateFontScale*density;
-        CharSequence dateText=DateFormat.format("EE, d MMMM", now);
-        views.setImageViewBitmap(R.id.date, renderText(context, dateText, dateTypeface(context), datePx,
-                null, null, 0f, dateColor));
+        CharSequence dateText=DateFormat.format("MMM d, EEE", now);
+        Bitmap dateBmp=renderText(context, dateText, dateTypeface(context), datePx,
+                null, null, 0f, dateColor);
+        views.setImageViewBitmap(R.id.date, dateBmp);
+
+        // Cap the calendar to whole blocks that fit under the clock/date, so the list
+        // never shows a clipped partial block. Uses the real bitmap heights + widget
+        // height; biased slightly conservative (a block that only half-fits is dropped).
+        if(options!=null){
+            int widgetHdp=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT);
+            if(widgetHdp>0){
+                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 20f*density;
+                float blockPx=58f*density; // event block incl. gap (approx), slightly over to avoid slivers
+                maxCalendarBlocks=Math.max(1, (int)Math.floor(availablePx/blockPx));
+            }
+        }
 
         // Next alarm in MiSans, when there is one and there's room.
         if(!hideAlarm){

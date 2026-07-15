@@ -205,7 +205,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
 
         @Override
         public int getCount() {
-            if(!entries.isEmpty()) return entries.size(); else return 1;
+            if(!entries.isEmpty()) return Math.min(entries.size(), Math.max(1, C31Widget.maxCalendarBlocks)); else return 1;
         }
 
         @Override

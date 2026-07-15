@@ -44,6 +44,9 @@ public class C31Widget extends AppWidgetProvider {
             Log.v(TAG, "updateAppWidget: " + appWidgetId);
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.c31_widget);
+            // The AM/PM indicator (rendered in the default font next to the clock digits)
+            // is only shown in 12-hour mode; in 24-hour mode it is hidden.
+            views.setViewVisibility(R.id.clock_ampm, DateFormat.is24HourFormat(context) ? View.GONE : View.VISIBLE);
             Bundle options = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId);
             boolean hideAlarm = false, hideCalendar = false;
             if (options != null) {
@@ -68,6 +71,8 @@ public class C31Widget extends AppWidgetProvider {
                     views.setTextViewTextSize(R.id.clock, TypedValue.COMPLEX_UNIT_DIP, 80 * clockFontScale);
                 } else {
                     views.setTextViewTextSize(R.id.clock, TypedValue.COMPLEX_UNIT_DIP, 60 * clockFontScale);
+                    // Keep the AM/PM indicator proportional to the (resized) clock digits.
+                    views.setTextViewTextSize(R.id.clock_ampm, TypedValue.COMPLEX_UNIT_DIP, 60 * clockFontScale * 0.42f);
                 }
                 views.setTextViewTextSize(R.id.date, TypedValue.COMPLEX_UNIT_DIP, 18 * dateFontScale);
                 views.setTextViewTextSize(R.id.alarm, TypedValue.COMPLEX_UNIT_DIP, 18 * dateFontScale);
@@ -78,12 +83,6 @@ public class C31Widget extends AppWidgetProvider {
                 views.setOnClickPendingIntent(R.id.clock, openClockApp);
             } catch (Throwable t) {
                 Log.v(TAG, "Failed to register event handler for tapping clock (no app?)");
-            }
-            try {
-                PendingIntent openCalendarApp = PendingIntent.getActivity(context, 0, new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR), PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
-                views.setOnClickPendingIntent(R.id.calendar_icon, openCalendarApp);
-            } catch (Throwable t) {
-                Log.v(TAG, "Failed to register event handler for calendar icon (no app?)");
             }
             if (!hideAlarm) {
                 AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

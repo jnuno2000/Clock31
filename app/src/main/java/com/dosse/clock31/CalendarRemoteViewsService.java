@@ -28,6 +28,21 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
 
     private static final String TAG="CalendarSvc";
 
+    // Fallback fill used when an event has no calendar color.
+    private static final int DEFAULT_EVENT_COLOR = 0xFF757575;
+
+    /**
+     * Returns black or white (at the given alpha) depending on which contrasts
+     * better with the given background color, so event text stays readable on
+     * both light and dark calendar colors.
+     */
+    private static int contrastColor(int bg, int alpha){
+        int r=(bg>>16)&0xff, g=(bg>>8)&0xff, b=bg&0xff;
+        double lum=(0.299*r+0.587*g+0.114*b)/255.0;
+        int base = lum>0.6 ? 0x000000 : 0xffffff;
+        return (alpha<<24) | (base & 0xffffff);
+    }
+
     public CalendarRemoteViewsService() {
     }
 
@@ -174,8 +189,11 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                     }
                 }
                 v.setTextViewText(R.id.event_date,formattedDate);
-                v.setViewVisibility(R.id.color_dot, View.VISIBLE);
-                v.setInt(R.id.color_dot,"setColorFilter",data.eventColor);
+                int blockColor = (data.eventColor >>> 24) == 0 ? DEFAULT_EVENT_COLOR : data.eventColor;
+                v.setViewVisibility(R.id.block_bg, View.VISIBLE);
+                v.setInt(R.id.block_bg, "setColorFilter", blockColor);
+                v.setTextColor(R.id.event_title, contrastColor(blockColor, 0xff));
+                v.setTextColor(R.id.event_date, contrastColor(blockColor, 0xcc));
                 Intent openEvent=new Intent();
                 openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
                 openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -189,7 +207,9 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
                 v.setTextViewText(R.id.event_title,getString(R.string.no_events));
                 v.setTextViewText(R.id.event_date,getString(R.string.tap_calendar));
-                v.setViewVisibility(R.id.color_dot, View.INVISIBLE);
+                v.setViewVisibility(R.id.block_bg, View.INVISIBLE);
+                v.setTextColor(R.id.event_title, 0xffffffff);
+                v.setTextColor(R.id.event_date, 0xffffffff);
                 return v;
             }
         }

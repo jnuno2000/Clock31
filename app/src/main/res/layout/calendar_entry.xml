@@ -1,52 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/calendar_entry"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     >
 
+    <!--
+    Solid, rounded color block behind the text. The white shape is tinted to the
+    event's calendar color at runtime (setColorFilter), so each event looks like a
+    Google-Calendar colored chip. The text color is chosen for contrast in code.
+    -->
     <ImageView
-        android:id="@+id/color_dot"
-        android:layout_width="10dp"
-        android:layout_height="10dp"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="2dp"
-        android:layout_marginEnd="12dp"
-        android:src="@drawable/event_dot"
+        android:id="@+id/block_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/event_block"
         android:contentDescription="@null"
         />
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/event_title"
-        android:layout_toEndOf="@id/color_dot"
-        android:text="Event title"
-        android:textColor="#ffffff"
-        android:textSize="14dp"
-        android:textFontWeight="500"
-        android:shadowRadius="3"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="2dp"
-        />
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        >
 
-    <TextView
-        android:id="@+id/event_date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/event_title"
-        android:layout_toEndOf="@id/color_dot"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:text="From - To"
-        android:textColor="@color/widget_event_time_color"
-        android:textSize="12dp"
-        android:paddingBottom="5dp"
-        />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/event_title"
+            android:text="Event title"
+            android:textColor="#ffffff"
+            android:textSize="14dp"
+            android:textFontWeight="500"
+            android:maxLines="1"
+            android:ellipsize="end"
+            />
 
-</RelativeLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/event_date"
+            android:text="From - To"
+            android:textColor="#e0ffffff"
+            android:textSize="12dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="1dp"
+            />
+
+    </LinearLayout>
+
+</FrameLayout>

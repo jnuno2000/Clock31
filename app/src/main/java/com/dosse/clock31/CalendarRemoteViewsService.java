@@ -216,7 +216,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 if(data==null) return null;
                 float density=context.getResources().getDisplayMetrics().density;
                 float maxW=eventTextMaxWidth();
-                Bitmap titleBmp=renderEventText(data.eventTitle, titleTypeface(), 15f*density, 0xffffffff, maxW);
+                Bitmap titleBmp=renderEventText(data.eventTitle, titleTypeface(), 17f*density, 0xffffffff, maxW);
                 v.setImageViewBitmap(R.id.event_title, titleBmp);
                 String formattedDate;
                 if(data.eventAllDay){
@@ -232,7 +232,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                         formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
                     }
                 }
-                Bitmap timeBmp=renderEventText(formattedDate, timeTypeface(), 12f*density, 0xe6ffffff, maxW);
+                Bitmap timeBmp=renderEventText(formattedDate, timeTypeface(), 14f*density, 0xe6ffffff, maxW);
                 v.setImageViewBitmap(R.id.event_date, timeBmp);
                 // Report the exact block height (title + time bitmaps + padding 9+9,
                 // title/time margin 1, divider 6) so the provider can size the list
@@ -255,8 +255,8 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
                 float density=context.getResources().getDisplayMetrics().density;
                 float maxW=eventTextMaxWidth();
-                v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 15f*density, 0xffffffff, maxW));
-                v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 12f*density, 0xe6ffffff, maxW));
+                v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 17f*density, 0xffffffff, maxW));
+                v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 14f*density, 0xe6ffffff, maxW));
                 v.setViewVisibility(R.id.block_bg, View.INVISIBLE);
                 return v;
             }

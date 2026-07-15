@@ -1,0 +1,23 @@
+MiSans Latin (Regular) — bundled as mi_sans.ttf
+
+Copyright 2020-2024 Beijing Xiaomi Mobile Software Co., Ltd. & Hanyi Fonts.
+All Rights Reserved.
+
+This application uses the MiSans font. MiSans is provided by Xiaomi free of
+charge, including for use in applications, under the MiSans Font Intellectual
+Property License Agreement.
+
+Summary of the relevant terms (the full agreement governs):
+  * MiSans is free to use, including in commercial works and applications.
+  * You may distribute a work (such as this app) that was created using
+    MiSans. This is exactly how the font is used here: it is embedded solely
+    so the widget can render text with it.
+  * You may NOT redistribute or sell the MiSans font files by themselves, and
+    you may NOT modify or "redevelop" the font. The font bundled here is the
+    unmodified original.
+  * Software that uses MiSans must state that MiSans was used — which is the
+    purpose of this notice.
+
+Official font and license:
+  https://hyperos.mi.com/font/en/
+  https://hyperos.mi.com/font-download/MiSans%E5%AD%97%E4%BD%93%E7%9F%A5%E8%AF%86%E4%BA%A7%E6%9D%83%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE.pdf

@@ -1,3 +1,5 @@
 Clock 31 is a Clock + Calendar combo widget for Android, inspired by (but not forked from) the cLock widget found in old versions of LineageOS.
 
-The widget shows the current time and date, the next alarm (if any), and upcoming events for all your calendars (the colors on the left indicates the calendar to which they belong). Some useful shortcuts are also provided: tapping the clock will bring you to the clock and alarm app, tapping the calendar icon will open the calendar, tapping an event will bring you to the details of that event.
+This fork has a restyled look inspired by the Android 12+ / HyperOS lock screen: on Android 12 and newer the clock and date are tinted from your wallpaper (Material You), while older versions keep the classic white look.
+
+The widget shows the current time and date, the next alarm (if any), and upcoming events from all your calendars. Each event is drawn as a solid, Google-Calendar-style rounded block in its calendar's color. Useful shortcuts are also provided: tapping the clock opens the clock and alarm app, and tapping an event opens that event in your calendar.

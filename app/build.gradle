@@ -9,8 +9,8 @@ android {
         applicationId "com.dosse.clock31"
         minSdk 21
         targetSdk 32
-        versionCode 6
-        versionName '1.1.0'
+        versionCode 7
+        versionName '1.2.0'
     }
 
     buildTypes {

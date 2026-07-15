@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag to create (e.g. v1.1.0)'
+        description: 'Release version tag to create (e.g. v1.2.0)'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.2.0'
 
 permissions:
   contents: write
@@ -88,6 +88,11 @@ jobs:
           files: ${{ env.APK }}
           fail_on_unmatched_files: true
           body: |
-            * Clock and date now match the Android 12+ lock screen, tinted from your wallpaper (Material You)
-            * Redesigned calendar list with rounded event-color dots and a cleaner layout
-            * Older Android versions keep the classic white look
+            A restyled look inspired by the Android 12+ / HyperOS lock screen.
+
+            * Clock and date are tinted from your wallpaper on Android 12+ (Material You); older versions keep the classic white look
+            * Clock and date use the MiSans lock-screen font; the calendar uses Google Sans
+            * Calendar events are now solid, Google-Calendar-style rounded color blocks with clean white text
+            * Removed the calendar icon and left divider column so events span the full width; the list snaps to whole blocks (no clipped rows) and stays scrollable
+
+            Fonts are bundled under their own licenses (Google Sans: SIL OFL 1.1; MiSans: Xiaomi MiSans Font License) — see THIRD_PARTY_NOTICES.md.

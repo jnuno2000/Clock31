@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    Android 12+ (API 31) only. These map the widget's text colors onto the
+    Material You palette that the system extracts from the wallpaper, so the
+    clock and date pick up the same tint as the lock-screen clock. The black
+    text shadow (set in the layouts) keeps them legible over any wallpaper.
+    -->
+    <color name="widget_clock_color">@android:color/system_accent1_100</color>
+    <color name="widget_date_color">@android:color/system_accent1_100</color>
+    <color name="widget_event_time_color">@android:color/system_neutral1_200</color>
+</resources>

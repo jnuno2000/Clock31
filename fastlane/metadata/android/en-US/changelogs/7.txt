@@ -4,3 +4,4 @@ A restyled look inspired by the Android 12+ / HyperOS lock screen:
 * Calendar events shown as solid, Google-Calendar-style rounded color blocks
 * Removed the calendar icon and left column; the list snaps to whole blocks (no clipped rows) and stays scrollable
 * Tapping the clock now opens whichever clock/alarm app you have installed, instead of a single hard-coded one
+* Next-alarm indicator now uses a wallpaper-tinted alarm icon instead of a color emoji, and shows more reliably

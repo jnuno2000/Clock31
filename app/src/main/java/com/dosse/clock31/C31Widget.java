@@ -34,12 +34,6 @@ public class C31Widget extends AppWidgetProvider {
 
     public static boolean updatePending =false;
 
-    // How many whole calendar blocks fit in the current widget height. Computed by
-    // the provider (which knows the widget size and the clock/date bitmap heights)
-    // and read by CalendarRemoteViewsService.getCount() so the list never renders a
-    // clipped partial block. Shared via static because both run in the same process.
-    public static volatile int maxCalendarBlocks = 3;
-
     public static final String ACTION_REFRESH="com.dosse.clock31.ACTION_REFRESH";
     public static final String ACTION_TICK="com.dosse.clock31.ACTION_TICK";
 
@@ -47,7 +41,7 @@ public class C31Widget extends AppWidgetProvider {
 
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
-            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans_light.ttf"); }
+            try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans.ttf"); }
             catch(Throwable t){ clockTypeface=Typeface.DEFAULT; }
         }
         return clockTypeface;
@@ -147,18 +141,6 @@ public class C31Widget extends AppWidgetProvider {
         Bitmap dateBmp=renderText(context, dateText, dateTypeface(context), datePx,
                 null, null, 0f, dateColor);
         views.setImageViewBitmap(R.id.date, dateBmp);
-
-        // Cap the calendar to whole blocks that fit under the clock/date, so the list
-        // never shows a clipped partial block. Uses the real bitmap heights + widget
-        // height; biased slightly conservative (a block that only half-fits is dropped).
-        if(options!=null){
-            int widgetHdp=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT);
-            if(widgetHdp>0){
-                float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() - 20f*density;
-                float blockPx=58f*density; // event block incl. gap (approx), slightly over to avoid slivers
-                maxCalendarBlocks=Math.max(1, (int)Math.floor(availablePx/blockPx));
-            }
-        }
 
         // Next alarm in MiSans, when there is one and there's room.
         if(!hideAlarm){

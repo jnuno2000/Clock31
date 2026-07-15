@@ -61,6 +61,8 @@
             android:id="@+id/calendar"
             android:dividerHeight="6dp"
             android:divider="@android:color/transparent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
             />
 
     </LinearLayout>

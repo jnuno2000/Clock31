@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -103,8 +104,11 @@ public class C31Widget extends AppWidgetProvider {
         p.setColor(color);
         p.setTypeface(mainTf);
         p.setTextSize(mainPx);
-        Paint.FontMetrics fm=p.getFontMetrics();
         float mainW=p.measureText(mainStr);
+        // Crop tight to the actual glyph bounds (not the full font line box) so there's
+        // no dead space above/below the text.
+        Rect ink=new Rect();
+        if(mainStr.length()>0) p.getTextBounds(mainStr, 0, mainStr.length(), ink);
 
         Paint sp=null; float gap=0f, suffixW=0f;
         String suffixStr = suffix==null ? "" : suffix.toString();
@@ -119,12 +123,12 @@ public class C31Widget extends AppWidgetProvider {
 
         int pad=(int)Math.ceil(mainPx*0.03f+2f);
         int w=(int)Math.ceil(mainW+gap+suffixW)+pad*2;
-        int h=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
+        int h=(ink.bottom-ink.top)+pad*2;
         if(w<1) w=1;
         if(h<1) h=1;
         Bitmap bmp=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas cv=new Canvas(bmp);
-        float baseline=pad-fm.ascent;
+        float baseline=pad-ink.top;
         cv.drawText(mainStr, pad, baseline, p);
         if(sp!=null){
             cv.drawText(suffixStr, pad+mainW+gap, baseline, sp);
@@ -159,7 +163,7 @@ public class C31Widget extends AppWidgetProvider {
         int dateColor=resolveColor(context, R.color.widget_date_color);
 
         // Clock: digits + AM/PM (12h only) in the clock font.
-        float clockPx=(is24?80f:60f)*clockFontScale*density;
+        float clockPx=(is24?100f:75f)*clockFontScale*density;
         CharSequence timeText=DateFormat.format(is24?"HH:mm":"h:mm", now);
         CharSequence ampm=is24?null:DateFormat.format("a", now);
         Bitmap clockBmp=renderText(context, timeText, clockTypeface(context), clockPx,

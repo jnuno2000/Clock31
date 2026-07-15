@@ -86,9 +86,6 @@ public class C31Widget extends AppWidgetProvider {
         p.setColor(color);
         p.setTypeface(mainTf);
         p.setTextSize(mainPx);
-        float shadowR=Math.max(2f, mainPx*0.05f);
-        float shadowDy=Math.max(1f, mainPx*0.03f);
-        p.setShadowLayer(shadowR, 0, shadowDy, 0x80000000);
         Paint.FontMetrics fm=p.getFontMetrics();
         float mainW=p.measureText(mainStr);
 
@@ -99,12 +96,11 @@ public class C31Widget extends AppWidgetProvider {
             sp.setColor(color);
             sp.setTypeface(suffixTf==null?Typeface.DEFAULT:suffixTf);
             sp.setTextSize(suffixPx);
-            sp.setShadowLayer(shadowR, 0, shadowDy, 0x80000000);
             gap=mainPx*0.12f;
             suffixW=sp.measureText(suffixStr);
         }
 
-        int pad=(int)Math.ceil(shadowR+shadowDy+2f);
+        int pad=Math.max(2,(int)Math.ceil(mainPx*0.04f));
         int w=(int)Math.ceil(mainW+gap+suffixW)+pad*2;
         int h=(int)Math.ceil(fm.descent-fm.ascent)+pad*2;
         if(w<1) w=1;

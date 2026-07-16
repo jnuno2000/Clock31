@@ -3,7 +3,10 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    // compileSdk 33 (targetSdk stays 32) so the Robolectric unit-test classpath can
+    // resolve android.graphics.RuntimeShader, which only became a public stub in API 33.
+    // This only affects compile-time symbols; runtime behaviour is governed by targetSdk.
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.dosse.clock31"

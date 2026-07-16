@@ -3,4 +3,9 @@
     <string name="app_widget_description">Simple clock and calendar combo widget</string>
     <string name="no_events">No upcoming events</string>
     <string name="tap_calendar">Enjoy your free time</string>
+    <string name="header_today">Today</string>
+    <string name="header_tomorrow">Tomorrow</string>
+    <string name="rel_now">Now</string>
+    <string name="rel_in_min">in %1$d min</string>
+    <string name="rel_in_hour">in %1$d h</string>
 </resources>

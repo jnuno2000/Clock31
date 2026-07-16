@@ -1,6 +1,7 @@
 package com.dosse.clock31;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.Manifest;
@@ -54,7 +55,7 @@ public class CalendarFactoryTest {
     }
 
     @Test
-    public void countsEventsAndExposesStableIds() {
+    public void listsEventsWithStableIds() {
         MatrixCursor c = new MatrixCursor(COLS);
         long now = System.currentTimeMillis();
         c.addRow(new Object[]{101L, "Standup", now + 3600000L, now + 7200000L, 0, 0xFF4285F4});
@@ -62,9 +63,12 @@ public class CalendarFactoryTest {
         registerCursor(c);
 
         RemoteViewsFactory f = factoryAfterLoad();
-        assertEquals(2, f.getCount());
-        assertEquals(101L, f.getItemId(0));
-        assertEquals(102L, f.getItemId(1));
+        int n = f.getCount();
+        assertTrue("rows should include at least the two events (plus day headers)", n >= 2);
+        java.util.Set<Long> ids = new java.util.HashSet<>();
+        for (int i = 0; i < n; i++) ids.add(f.getItemId(i));
+        assertTrue("event 101 present", ids.contains(101L));
+        assertTrue("event 102 present", ids.contains(102L));
     }
 
     @Test

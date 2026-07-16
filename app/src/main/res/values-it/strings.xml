@@ -4,4 +4,9 @@
     <string name="app_widget_description">Widget con orologio e calendario</string>
     <string name="no_events">Nessun evento in programma</string>
     <string name="tap_calendar">Goditi il tempo libero</string>
+    <string name="header_today">Oggi</string>
+    <string name="header_tomorrow">Domani</string>
+    <string name="rel_now">Ora</string>
+    <string name="rel_in_min">tra %1$d min</string>
+    <string name="rel_in_hour">tra %1$d h</string>
 </resources>

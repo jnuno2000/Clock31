@@ -29,6 +29,7 @@ import android.os.Process;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class CalendarRemoteViewsService extends RemoteViewsService{
 
@@ -79,6 +80,19 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
         }
 
         private List<CalendarListEntry> entries=new ArrayList<>();
+
+        /** A row in the agenda list: either a day header or an event. */
+        private class Row {
+            final String header;               // non-null => day-header row
+            final long headerDay;              // local epoch day (stable id for headers)
+            final CalendarListEntry event;     // non-null => event row
+            Row(String header, long headerDay){ this.header=header; this.headerDay=headerDay; this.event=null; }
+            Row(CalendarListEntry event){ this.header=null; this.headerDay=0; this.event=event; }
+            boolean isHeader(){ return event==null; }
+        }
+
+        /** entries grouped into day-header + event rows (rebuilt in updateCalendarInfo). */
+        private List<Row> rows=new ArrayList<>();
 
         public CalendarRemoteViewsFactory(Context context) {
             this.context = context;
@@ -172,6 +186,21 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 Log.v(TAG,"Not allowed to read calendar");
                 entries.clear();
             }
+            // Group events into day-header + event rows for the agenda list.
+            rows.clear();
+            TimeZone tz=TimeZone.getDefault();
+            long groupNow=System.currentTimeMillis();
+            long lastDay=Long.MIN_VALUE;
+            String todayLabel=context.getString(R.string.header_today);
+            String tomorrowLabel=context.getString(R.string.header_tomorrow);
+            for(CalendarListEntry e:entries){
+                long day=Clock31Logic.localEpochDay(e.eventBegin, tz);
+                if(day!=lastDay){
+                    rows.add(new Row(Clock31Logic.dayHeaderLabel(e.eventBegin, groupNow, tz, Locale.getDefault(), todayLabel, tomorrowLabel), day));
+                    lastDay=day;
+                }
+                rows.add(new Row(e));
+            }
             AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
             Intent refreshIntent = new Intent(context, C31Widget.class);
             refreshIntent.setAction(C31Widget.ACTION_REFRESH);
@@ -205,61 +234,79 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
 
         @Override
         public int getCount() {
-            if(!entries.isEmpty()) return entries.size(); else return 1;
+            return rows.isEmpty() ? 1 : rows.size();
+        }
+
+        /** Localized relative-time prefix ("Now", "in 25 min", "in 3 h") or "". */
+        private String relativeText(Clock31Logic.Relative r){
+            switch(r.kind){
+                case NOW: return getString(R.string.rel_now);
+                case MINUTES: return getString(R.string.rel_in_min, r.value);
+                case HOURS: return getString(R.string.rel_in_hour, r.value);
+                default: return "";
+            }
         }
 
         @Override
         public RemoteViews getViewAt(int i) {
-            if(!entries.isEmpty()){
+            float density=context.getResources().getDisplayMetrics().density;
+            float maxW=eventTextMaxWidth();
+            if(rows.isEmpty()){
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
-                CalendarListEntry data=entries.get(i);
-                if(data==null) return null;
-                float density=context.getResources().getDisplayMetrics().density;
-                float maxW=eventTextMaxWidth();
-                Bitmap titleBmp=renderEventText(data.eventTitle, titleTypeface(), 15f*density, 0xffffffff, maxW);
-                v.setImageViewBitmap(R.id.event_title, titleBmp);
-                String formattedDate;
-                if(data.eventAllDay){
-                    if(data.eventEnd-data.eventBegin>DAY_IN_MS){
-                        formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
-                    }else{
-                        formattedDate= DateUtils.formatDateTime(context,data.eventBegin,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
-                    }
-                }else{
-                    if(DateUtils.isToday(data.eventBegin)&&DateUtils.isToday(data.eventEnd)){
-                        formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
-                    }else{
-                        formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
-                    }
-                }
-                Bitmap timeBmp=renderEventText(formattedDate, timeTypeface(), 12f*density, 0xe6ffffff, maxW);
-                v.setImageViewBitmap(R.id.event_date, timeBmp);
-                // Report the exact block height (title + time bitmaps + padding 9+9,
-                // title/time margin 1, divider 6) so the provider can size the list
-                // to whole blocks. Widget layout values must match calendar_entry.xml.
-                C31Widget.calendarBlockHeightPx = titleBmp.getHeight() + timeBmp.getHeight()
-                        + (int)Math.ceil((7f+7f+1f+6f)*density);
-                int blockColor = Clock31Logic.blockColor(data.eventColor, DEFAULT_EVENT_COLOR);
-                v.setViewVisibility(R.id.block_bg, View.VISIBLE);
-                v.setInt(R.id.block_bg, "setColorFilter", blockColor);
-                Intent openEvent=new Intent();
-                openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
-                openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        | Intent.FLAG_ACTIVITY_NO_HISTORY
-                        | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
-                v.setOnClickFillInIntent(R.id.calendar_entry,openEvent);
-                return v;
-            }else{
-                RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
-                float density=context.getResources().getDisplayMetrics().density;
-                float maxW=eventTextMaxWidth();
                 v.setImageViewBitmap(R.id.event_title, renderEventText(getString(R.string.no_events), titleTypeface(), 15f*density, 0xffffffff, maxW));
                 v.setImageViewBitmap(R.id.event_date, renderEventText(getString(R.string.tap_calendar), timeTypeface(), 12f*density, 0xe6ffffff, maxW));
                 v.setViewVisibility(R.id.block_bg, View.INVISIBLE);
                 return v;
             }
+            if(i<0 || i>=rows.size()) return null;
+            Row row=rows.get(i);
+            if(row.isHeader()){
+                RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_header);
+                int headerColor=C31Widget.resolveColor(context, R.color.widget_date_color);
+                v.setImageViewBitmap(R.id.header_label, renderEventText(row.header, titleTypeface(), 13f*density, headerColor, maxW));
+                return v;
+            }
+            CalendarListEntry data=row.event;
+            if(data==null) return null;
+            RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
+            Bitmap titleBmp=renderEventText(data.eventTitle, titleTypeface(), 15f*density, 0xffffffff, maxW);
+            v.setImageViewBitmap(R.id.event_title, titleBmp);
+            String formattedDate;
+            if(data.eventAllDay){
+                if(data.eventEnd-data.eventBegin>DAY_IN_MS){
+                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
+                }else{
+                    formattedDate= DateUtils.formatDateTime(context,data.eventBegin,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
+                }
+            }else{
+                if(DateUtils.isToday(data.eventBegin)&&DateUtils.isToday(data.eventEnd)){
+                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
+                }else{
+                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
+                }
+            }
+            // Prefix a relative time for imminent events, e.g. "Now · 10:30" / "in 25 min · 14:00".
+            String rel=relativeText(Clock31Logic.relativeTime(data.eventBegin, data.eventEnd, System.currentTimeMillis()));
+            if(!rel.isEmpty()) formattedDate = rel + "  ·  " + formattedDate;
+            Bitmap timeBmp=renderEventText(formattedDate, timeTypeface(), 12f*density, 0xe6ffffff, maxW);
+            v.setImageViewBitmap(R.id.event_date, timeBmp);
+            // Report the exact event-block height (title + time bitmaps + padding 7+7,
+            // title/time margin 1, divider 6) so the provider can size the list to whole
+            // blocks. Widget layout values must match calendar_entry.xml.
+            C31Widget.calendarBlockHeightPx = titleBmp.getHeight() + timeBmp.getHeight()
+                    + (int)Math.ceil((7f+7f+1f+6f)*density);
+            int blockColor = Clock31Logic.blockColor(data.eventColor, DEFAULT_EVENT_COLOR);
+            v.setViewVisibility(R.id.block_bg, View.VISIBLE);
+            v.setInt(R.id.block_bg, "setColorFilter", blockColor);
+            Intent openEvent=new Intent();
+            openEvent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,data.eventId));
+            openEvent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NO_HISTORY
+                    | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+            v.setOnClickFillInIntent(R.id.calendar_entry,openEvent);
+            return v;
         }
 
         @Override
@@ -269,12 +316,14 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
 
         @Override
         public int getViewTypeCount() {
-            return 1;
+            return 2; // event block + day header
         }
 
         @Override
         public long getItemId(int i) {
-            if(!entries.isEmpty()) return entries.get(i).eventId; else return -1;
+            if(rows.isEmpty() || i<0 || i>=rows.size()) return -1;
+            Row r=rows.get(i);
+            return r.isHeader() ? (Long.MIN_VALUE + r.headerDay) : r.event.eventId;
         }
 
         @Override

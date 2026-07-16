@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+Agenda day header ("Today", "Tomorrow", "Wed, Jul 23"). Sits on the wallpaper above
+the first event of each day. The label is an ImageView holding a bitmap rendered in
+Google Sans (CalendarRemoteViewsService), tinted to the wallpaper accent, so it can't
+use a plain text view (custom font).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendar_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="4dp">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/header_label"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null" />
+
+</LinearLayout>

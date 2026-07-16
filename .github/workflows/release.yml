@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag to create (e.g. v1.2.0)'
+        description: 'Release version tag to create (e.g. v1.3.0)'
         required: true
-        default: 'v1.2.0'
+        default: 'v1.3.0'
 
 permissions:
   contents: write
@@ -88,13 +88,18 @@ jobs:
           files: ${{ env.APK }}
           fail_on_unmatched_files: true
           body: |
-            A restyled look inspired by the Android 12+ / HyperOS lock screen.
+            A lock-screen-style clock + agenda widget, tinted from your wallpaper.
 
+            New in 1.3.0:
+            * Weather: current temperature and a wallpaper-tinted weather icon next to the date (via free, keyless Open-Meteo)
+            * Agenda view: events grouped by day (Today / Tomorrow / date) with a relative time on imminent events ("Now", "in 25 min")
+            * Tap the date to open your calendar on today
+            * New settings screen: color tone (wallpaper / neutral / white), clock-only mode, and weather on/off + °C/°F
+
+            Also included:
             * Clock and date are tinted from your wallpaper on Android 12+ (Material You); older versions keep the classic white look
             * Clock and date use the MiSans lock-screen font; the calendar uses Google Sans
-            * Calendar events are now solid, Google-Calendar-style rounded color blocks with clean white text
-            * Removed the calendar icon and left divider column so events span the full width; the list snaps to whole blocks (no clipped rows) and stays scrollable
-            * Tapping the clock now opens whichever clock/alarm app you have installed, instead of a single hard-coded one
-            * Next-alarm indicator now uses a wallpaper-tinted alarm icon instead of a color emoji, and shows more reliably
+            * Calendar events are solid, Google-Calendar-style rounded color blocks
+            * Tapping the clock opens whichever clock/alarm app you have installed; the next-alarm indicator uses a wallpaper-tinted icon
 
             Fonts are bundled under their own licenses (Google Sans: SIL OFL 1.1; MiSans: Xiaomi MiSans Font License) — see THIRD_PARTY_NOTICES.md.

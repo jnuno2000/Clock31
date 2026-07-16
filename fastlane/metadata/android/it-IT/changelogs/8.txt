@@ -1,0 +1,4 @@
+* Meteo: temperatura attuale + un'icona meteo colorata in base allo sfondo accanto alla data (Open-Meteo, gratuito e senza chiave)
+* Vista agenda: eventi raggruppati per giorno (Oggi / Domani / data) con il tempo relativo sugli eventi imminenti ("Ora", "tra 25 min")
+* Tocca la data per aprire il calendario su oggi
+* Nuove impostazioni: colore (sfondo / neutro / bianco), solo orologio, meteo on/off + °C/°F

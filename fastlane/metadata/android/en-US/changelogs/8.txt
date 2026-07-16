@@ -1,0 +1,4 @@
+* Weather: current temperature + a wallpaper-tinted weather icon next to the date (free, keyless Open-Meteo)
+* Agenda view: events grouped by day (Today / Tomorrow / date) with a relative time on imminent events ("Now", "in 25 min")
+* Tap the date to open your calendar on today
+* New settings: color tone (wallpaper / neutral / white), clock-only mode, weather on/off + °C/°F

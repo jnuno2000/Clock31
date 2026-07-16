@@ -13,6 +13,10 @@ The widget shows the current time and date, the next alarm (if any), and upcomin
 - **Wallpaper-based color** — on Android 12 and newer, the clock and date are tinted from your wallpaper (the same Material You palette the lock screen uses). Older Android versions keep the classic white look.
 - **Lock-screen-style fonts** — the clock and date use MiSans (the HyperOS look); the calendar uses Google Sans, like Google Calendar. Because home-screen widgets can't apply custom fonts to text directly, these are rendered to images in code.
 - **Google-Calendar-style events** — each event is a solid rounded block in its calendar color with clean white text, instead of a plain list with a color bar.
+- **Agenda view** — events are grouped by day (Today / Tomorrow / date) with a relative time on imminent events ("Now", "in 25 min").
+- **Weather** — the current temperature and a wallpaper-tinted weather icon show next to the date, via the free, keyless [Open-Meteo](https://open-meteo.com) API and your device's approximate location.
+- **Handy taps** — tap the clock to open your clock/alarm app; tap the date to open your calendar on today; tap an event to open it.
+- **Settings** — an optional config screen for color tone (wallpaper / neutral / white), a clock-only mode, and weather on/off + °C/°F. Defaults keep everything automatic.
 - **Cleaner layout** — the calendar icon and the left divider column were removed so events span the full width, and the list snaps to whole blocks so no partial row is clipped (it's still scrollable).
 
 ## Download

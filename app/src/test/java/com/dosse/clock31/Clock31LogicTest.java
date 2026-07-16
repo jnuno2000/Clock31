@@ -90,4 +90,11 @@ public class Clock31LogicTest {
         assertEquals(0xFF757575, Clock31Logic.blockColor(0x00123456, 0xFF757575)); // zero alpha -> default
         assertEquals(0xFF00FF00, Clock31Logic.blockColor(0xFF00FF00, 0xFF757575)); // real color passes through
     }
+
+    // --- Tap the date -> open calendar at today (B1) -----------------------------------
+
+    @Test public void calendarTimeUri_pointsAtCalendarTimeEndpoint() {
+        assertEquals("content://com.android.calendar/time/1500000000000",
+                Clock31Logic.calendarTimeUri(1500000000000L));
+    }
 }

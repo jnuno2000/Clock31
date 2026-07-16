@@ -13,6 +13,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.AlarmClock;
@@ -323,6 +324,18 @@ public class C31Widget extends AppWidgetProvider {
                 }
             } catch (Throwable t) {
                 Log.v(TAG, "Failed to register event handler for tapping clock (no app?)");
+            }
+            try {
+                // Tapping the date opens the calendar app at today's date.
+                Intent openCalendar = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse(Clock31Logic.calendarTimeUri(System.currentTimeMillis())))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                if (openCalendar.resolveActivity(context.getPackageManager()) != null) {
+                    PendingIntent pi = PendingIntent.getActivity(context, 2, openCalendar, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
+                    views.setOnClickPendingIntent(R.id.date, pi);
+                }
+            } catch (Throwable t) {
+                Log.v(TAG, "Failed to register event handler for tapping date (no calendar app?)");
             }
             if (!hideCalendar) {
                 views.setViewVisibility(R.id.calendar_container, View.VISIBLE);

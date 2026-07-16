@@ -75,4 +75,13 @@ final class Clock31Logic {
     static int blockColor(int eventColor, int defaultColor){
         return (eventColor >>> 24) == 0 ? defaultColor : eventColor;
     }
+
+    /**
+     * Content URI (as a string) that opens the calendar app at the given time, used to
+     * make tapping the date jump to today's agenda. Calendar apps register ACTION_VIEW
+     * for {@code content://com.android.calendar/time/<millis>}.
+     */
+    static String calendarTimeUri(long millis){
+        return "content://com.android.calendar/time/" + millis;
+    }
 }

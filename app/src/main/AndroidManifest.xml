@@ -14,6 +14,11 @@
         <intent>
             <action android:name="android.intent.action.SHOW_ALARMS" />
         </intent>
+        <!-- So tapping the date can open the calendar app. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:host="com.android.calendar" />
+        </intent>
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.android.deskclock" />
     </queries>

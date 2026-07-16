@@ -216,13 +216,16 @@ public class C31Widget extends AppWidgetProvider {
             hideAlarm=sz.hideAlarm;
             hideCalendar=sz.hideCalendar;
         }
+        if(WidgetPrefs.clockOnly(context)) hideCalendar=true; // clock-only mode hides the calendar
         if(Build.VERSION.SDK_INT<=Build.VERSION_CODES.N){ clockFontScale=clockFontScale*0.8f; }
 
         float density=context.getResources().getDisplayMetrics().density;
         boolean is24=DateFormat.is24HourFormat(context);
         long now=System.currentTimeMillis();
-        int clockColor=resolveColor(context, R.color.widget_clock_color);
-        int dateColor=resolveColor(context, R.color.widget_date_color);
+        int tone=WidgetPrefs.colorTone(context);
+        int clockColor=Clock31Logic.chosenToneColor(tone,
+                resolveColor(context, R.color.widget_clock_color), resolveColor(context, R.color.widget_neutral_color));
+        int dateColor=clockColor;
 
         // Clock: digits + AM/PM (12h only) in the clock font.
         float clockPx=(is24?100f:75f)*clockFontScale*density;
@@ -240,7 +243,7 @@ public class C31Widget extends AppWidgetProvider {
         views.setImageViewBitmap(R.id.date, dateBmp);
 
         // Weather (temp + glyph) next to the date, when cached and there's room.
-        Clock31Logic.WeatherData weather=WeatherRepository.getCached(context);
+        Clock31Logic.WeatherData weather=WidgetPrefs.weatherEnabled(context)?WeatherRepository.getCached(context):null;
         if(weather!=null && !hideAlarm){
             views.setImageViewBitmap(R.id.weather, renderWeather(context,
                     Clock31Logic.weatherGlyph(weather.code), Clock31Logic.formatTemp(weather.temp), datePx, dateColor));
@@ -353,7 +356,7 @@ public class C31Widget extends AppWidgetProvider {
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.c31_widget);
             boolean hideCalendar = renderClockDate(context, appWidgetManager, appWidgetId, views, true);
-            WeatherRepository.refreshIfStale(context, true); // Celsius default; config toggle comes in B4
+            if(WidgetPrefs.weatherEnabled(context)) WeatherRepository.refreshIfStale(context, WidgetPrefs.celsius(context));
             try {
                 Intent clockIntent = clockAppIntent(context);
                 if (clockIntent != null) {

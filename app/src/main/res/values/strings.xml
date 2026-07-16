@@ -8,4 +8,15 @@
     <string name="rel_now">Now</string>
     <string name="rel_in_min">in %1$d min</string>
     <string name="rel_in_hour">in %1$d h</string>
+    <string name="settings_title">Widget settings</string>
+    <string name="tone_label">Clock &amp; date color</string>
+    <string name="tone_wallpaper">Wallpaper</string>
+    <string name="tone_neutral">Neutral</string>
+    <string name="tone_white">White</string>
+    <string name="clock_only">Hide calendar (clock only)</string>
+    <string name="show_weather">Show weather</string>
+    <string name="unit_label">Temperature unit</string>
+    <string name="unit_celsius">°C</string>
+    <string name="unit_fahrenheit">°F</string>
+    <string name="done">Add widget</string>
 </resources>

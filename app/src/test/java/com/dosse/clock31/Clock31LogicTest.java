@@ -167,4 +167,14 @@ public class Clock31LogicTest {
         assertEquals("22°", Clock31Logic.formatTemp(21.6));
         assertEquals("-3°", Clock31Logic.formatTemp(-2.6));
     }
+
+    // --- Config: color tone (B4) -------------------------------------------------------
+
+    @Test public void chosenToneColor_picksPerTone() {
+        int accent = 0xFFB0DFF2, neutral = 0xFFE3E3E6;
+        assertEquals(accent, Clock31Logic.chosenToneColor(Clock31Logic.TONE_ACCENT, accent, neutral));
+        assertEquals(neutral, Clock31Logic.chosenToneColor(Clock31Logic.TONE_NEUTRAL, accent, neutral));
+        assertEquals(0xFFFFFFFF, Clock31Logic.chosenToneColor(Clock31Logic.TONE_WHITE, accent, neutral));
+        assertEquals(accent, Clock31Logic.chosenToneColor(99, accent, neutral)); // unknown -> accent
+    }
 }

@@ -9,4 +9,6 @@
     <color name="widget_clock_color">#ffffff</color>
     <color name="widget_date_color">#ffffff</color>
     <color name="widget_event_time_color">#c0c0c0</color>
+    <!-- Neutral wallpaper tone option for the clock/date (config screen). -->
+    <color name="widget_neutral_color">#ffffff</color>
 </resources>

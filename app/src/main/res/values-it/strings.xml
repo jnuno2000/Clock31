@@ -9,4 +9,15 @@
     <string name="rel_now">Ora</string>
     <string name="rel_in_min">tra %1$d min</string>
     <string name="rel_in_hour">tra %1$d h</string>
+    <string name="settings_title">Impostazioni widget</string>
+    <string name="tone_label">Colore di orologio e data</string>
+    <string name="tone_wallpaper">Sfondo</string>
+    <string name="tone_neutral">Neutro</string>
+    <string name="tone_white">Bianco</string>
+    <string name="clock_only">Nascondi il calendario (solo orologio)</string>
+    <string name="show_weather">Mostra il meteo</string>
+    <string name="unit_label">Unità temperatura</string>
+    <string name="unit_celsius">°C</string>
+    <string name="unit_fahrenheit">°F</string>
+    <string name="done">Aggiungi widget</string>
 </resources>

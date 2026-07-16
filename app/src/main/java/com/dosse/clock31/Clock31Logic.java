@@ -188,4 +188,23 @@ final class Clock31Logic {
     static String formatTemp(double temp){
         return Math.round(temp) + "°";
     }
+
+    // --- Config: color tone ------------------------------------------------------------
+
+    static final int TONE_ACCENT = 0;   // wallpaper accent (default)
+    static final int TONE_NEUTRAL = 1;  // neutral wallpaper tone
+    static final int TONE_WHITE = 2;    // plain white
+
+    /**
+     * Resolves the clock/date color for the chosen tone: the wallpaper accent, the neutral
+     * wallpaper tone, or plain white. (accentColor/neutralColor are already resolved by the
+     * caller from resources so they honor the API-level fallback.)
+     */
+    static int chosenToneColor(int tone, int accentColor, int neutralColor){
+        switch(tone){
+            case TONE_NEUTRAL: return neutralColor;
+            case TONE_WHITE: return 0xFFFFFFFF;
+            default: return accentColor;
+        }
+    }
 }

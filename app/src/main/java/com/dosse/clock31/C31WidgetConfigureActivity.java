@@ -55,8 +55,7 @@ public class C31WidgetConfigureActivity extends Activity {
             boolean calendar = checkPermission(Manifest.permission.READ_CALENDAR,Process.myPid(),Process.myUid())==PackageManager.PERMISSION_GRANTED;
             boolean location = checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,Process.myPid(),Process.myUid())==PackageManager.PERMISSION_GRANTED;
             if(calendar && location){
-                proceedWithWidgetCreation();
-                return;
+                showSettings();
             } else if(calendar){
                 // Calendar is granted; ask once for location so the weather line can work.
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},102);
@@ -64,7 +63,33 @@ public class C31WidgetConfigureActivity extends Activity {
                 // Ask for both; only calendar is required to create the widget.
                 requestPermissions(new String[]{Manifest.permission.READ_CALENDAR, Manifest.permission.ACCESS_COARSE_LOCATION},101);
             }
+        } else {
+            // Pre-23: permissions are granted at install time.
+            showSettings();
         }
+    }
+
+    /** Populates the settings controls with the current values and wires the Done button. */
+    private void showSettings(){
+        int tone = WidgetPrefs.colorTone(this);
+        binding.toneWallpaper.setChecked(tone == Clock31Logic.TONE_ACCENT);
+        binding.toneNeutral.setChecked(tone == Clock31Logic.TONE_NEUTRAL);
+        binding.toneWhite.setChecked(tone == Clock31Logic.TONE_WHITE);
+        binding.switchClockOnly.setChecked(WidgetPrefs.clockOnly(this));
+        binding.switchWeather.setChecked(WidgetPrefs.weatherEnabled(this));
+        boolean celsius = WidgetPrefs.celsius(this);
+        binding.unitCelsius.setChecked(celsius);
+        binding.unitFahrenheit.setChecked(!celsius);
+        binding.btnDone.setOnClickListener(v -> saveAndFinish());
+    }
+
+    private void saveAndFinish(){
+        int tone = binding.toneNeutral.isChecked() ? Clock31Logic.TONE_NEUTRAL
+                : binding.toneWhite.isChecked() ? Clock31Logic.TONE_WHITE
+                : Clock31Logic.TONE_ACCENT;
+        WidgetPrefs.save(this, tone, binding.switchClockOnly.isChecked(),
+                binding.switchWeather.isChecked(), binding.unitCelsius.isChecked());
+        proceedWithWidgetCreation();
     }
 
     @Override
@@ -78,10 +103,10 @@ public class C31WidgetConfigureActivity extends Activity {
                     calendarGranted=true;
                 }
             }
-            if(calendarGranted) proceedWithWidgetCreation(); else failWidgetCreation();
+            if(calendarGranted) showSettings(); else failWidgetCreation();
         } else if(requestCode==102){
-            // Location-only (opportunistic); create the widget regardless of the choice.
-            proceedWithWidgetCreation();
+            // Location-only (opportunistic); show settings regardless of the choice.
+            showSettings();
         }
     }
 

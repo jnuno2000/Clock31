@@ -59,6 +59,16 @@ public class C31Widget extends AppWidgetProvider {
         return alarmIconTypeface;
     }
 
+    private static Typeface weatherTypeface;
+
+    private static Typeface weatherTypeface(Context context){
+        if(weatherTypeface==null){
+            try{ weatherTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/material_weather.ttf"); }
+            catch(Throwable t){ weatherTypeface=Typeface.DEFAULT; }
+        }
+        return weatherTypeface;
+    }
+
     private static Typeface clockTypeface(Context context){
         if(clockTypeface==null){
             try{ clockTypeface=Typeface.createFromAsset(context.getAssets(),"fonts/mi_sans.ttf"); }
@@ -171,6 +181,24 @@ public class C31Widget extends AppWidgetProvider {
     }
 
     /**
+     * Renders the weather line: a tinted Material Icons weather glyph followed by the
+     * temperature, vertically centered together (mirrors {@link #renderAlarm}).
+     */
+    private static Bitmap renderWeather(Context context, String glyph, String tempText, float textPx, int color){
+        Bitmap iconBmp=renderText(context, glyph, weatherTypeface(context), textPx*1.05f, null, null, 0f, color);
+        Bitmap textBmp=renderText(context, tempText, dateTypeface(context), textPx, null, null, 0f, color);
+        int gap=Math.round(textPx*0.08f);
+        int w=Math.max(1, iconBmp.getWidth()+gap+textBmp.getWidth());
+        int h=Math.max(1, Math.max(iconBmp.getHeight(), textBmp.getHeight()));
+        Bitmap out=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas cv=new Canvas(out);
+        cv.drawBitmap(iconBmp, 0, (h-iconBmp.getHeight())/2f, null);
+        cv.drawBitmap(textBmp, iconBmp.getWidth()+gap, (h-textBmp.getHeight())/2f, null);
+        out.setDensity(context.getResources().getDisplayMetrics().densityDpi);
+        return out;
+    }
+
+    /**
      * Renders the clock, date and alarm bitmaps into the given RemoteViews and sets
      * the alarm visibility. Returns whether the calendar should be hidden (used by
      * the full update path). Shared by full updates and per-minute ticks.
@@ -210,6 +238,16 @@ public class C31Widget extends AppWidgetProvider {
         Bitmap dateBmp=renderText(context, dateText, dateTypeface(context), datePx,
                 null, null, 0f, dateColor);
         views.setImageViewBitmap(R.id.date, dateBmp);
+
+        // Weather (temp + glyph) next to the date, when cached and there's room.
+        Clock31Logic.WeatherData weather=WeatherRepository.getCached(context);
+        if(weather!=null && !hideAlarm){
+            views.setImageViewBitmap(R.id.weather, renderWeather(context,
+                    Clock31Logic.weatherGlyph(weather.code), Clock31Logic.formatTemp(weather.temp), datePx, dateColor));
+            views.setViewVisibility(R.id.weather, View.VISIBLE);
+        } else {
+            views.setViewVisibility(R.id.weather, View.GONE);
+        }
 
         // Next alarm in MiSans, when there is one and there's room.
         if(!hideAlarm){
@@ -315,6 +353,7 @@ public class C31Widget extends AppWidgetProvider {
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.c31_widget);
             boolean hideCalendar = renderClockDate(context, appWidgetManager, appWidgetId, views, true);
+            WeatherRepository.refreshIfStale(context, true); // Celsius default; config toggle comes in B4
             try {
                 Intent clockIntent = clockAppIntent(context);
                 if (clockIntent != null) {

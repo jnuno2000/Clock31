@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Pure, Android-free logic extracted from the widget so it can be unit-tested on a plain
@@ -136,5 +138,54 @@ final class Clock31Logic {
         if(d < 3600000L) return new Relative(RelKind.MINUTES, (int)Math.max(1, d / 60000L));
         if(d < 86400000L) return new Relative(RelKind.HOURS, (int)(d / 3600000L));
         return new Relative(RelKind.NONE, 0);
+    }
+
+    // --- Weather (Open-Meteo, keyless) -------------------------------------------------
+
+    private static final Pattern TEMP_RE = Pattern.compile("\"temperature_2m\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)");
+    private static final Pattern CODE_RE = Pattern.compile("\"weather_code\"\\s*:\\s*(\\d+)");
+
+    /** Current temperature + WMO weather code parsed from an Open-Meteo response. */
+    static final class WeatherData {
+        final double temp; final int code;
+        WeatherData(double temp, int code){ this.temp = temp; this.code = code; }
+    }
+
+    /** Open-Meteo current-weather URL (free, no API key). */
+    static String openMeteoUrl(double lat, double lon, boolean celsius){
+        return "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon
+                + "&current=temperature_2m,weather_code&temperature_unit=" + (celsius ? "celsius" : "fahrenheit");
+    }
+
+    /**
+     * Extracts the current temperature and weather code from an Open-Meteo JSON response,
+     * or null if it can't be parsed. Matches the numeric fields (the string values under
+     * "current_units" are ignored because they aren't numbers).
+     */
+    static WeatherData parseOpenMeteoCurrent(String json){
+        if(json == null) return null;
+        Matcher t = TEMP_RE.matcher(json);
+        Matcher c = CODE_RE.matcher(json);
+        if(t.find() && c.find()){
+            try { return new WeatherData(Double.parseDouble(t.group(1)), Integer.parseInt(c.group(1))); }
+            catch(NumberFormatException e){ return null; }
+        }
+        return null;
+    }
+
+    /** Material Icons glyph (in material_weather.ttf) for a WMO weather code. */
+    static String weatherGlyph(int wmoCode){
+        if(wmoCode <= 1) return "\ue430";                                    // clear -> wb_sunny
+        if(wmoCode <= 3) return "\ue42d";                                    // clouds -> wb_cloudy
+        if(wmoCode == 45 || wmoCode == 48) return "\ue818";                  // fog -> foggy
+        if(wmoCode >= 95) return "\uebdb";                                   // thunderstorm
+        if((wmoCode >= 71 && wmoCode <= 77) || wmoCode == 85 || wmoCode == 86) return "\ueb3b"; // snow -> ac_unit
+        if((wmoCode >= 51 && wmoCode <= 67) || (wmoCode >= 80 && wmoCode <= 82)) return "\uf1ad"; // rain -> umbrella
+        return "\ue42d";                                                     // default -> wb_cloudy
+    }
+
+    /** Rounds a temperature to a whole-degree label, e.g. "21°". */
+    static String formatTemp(double temp){
+        return Math.round(temp) + "°";
     }
 }

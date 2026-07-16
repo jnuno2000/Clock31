@@ -7,6 +7,7 @@ import android.Manifest;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.shadows.ShadowContentResolver;
 
 /**
  * Guards the calendar data path: the factory must read the CalendarProvider, expose one
@@ -37,8 +37,12 @@ public class CalendarFactoryTest {
             CalendarContract.Events.CALENDAR_COLOR
     };
 
+    /** Registers a fake CalendarProvider that returns {@code cursor} for any query. */
     private void registerCursor(Cursor cursor) {
-        ShadowContentResolver.registerProviderInternally(CalendarContract.AUTHORITY, new FakeProvider(cursor));
+        FakeCalendarProvider.nextCursor = cursor;
+        ProviderInfo info = new ProviderInfo();
+        info.authority = CalendarContract.AUTHORITY;
+        Robolectric.buildContentProvider(FakeCalendarProvider.class).create(info);
     }
 
     private RemoteViewsFactory factoryAfterLoad() {
@@ -71,11 +75,11 @@ public class CalendarFactoryTest {
         assertEquals(-1L, f.getItemId(0));
     }
 
-    /** Minimal provider that returns a fixed cursor for any calendar query. */
-    private static class FakeProvider extends ContentProvider {
-        private final Cursor cursor;
-        FakeProvider(Cursor cursor) { this.cursor = cursor; }
-        @Override public boolean onCreate() { return true; }
+    /** Minimal provider that returns a preset cursor for any calendar query. */
+    public static class FakeCalendarProvider extends ContentProvider {
+        static Cursor nextCursor;
+        private Cursor cursor;
+        @Override public boolean onCreate() { cursor = nextCursor; return true; }
         @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) { return cursor; }
         @Override public String getType(Uri uri) { return null; }
         @Override public Uri insert(Uri uri, ContentValues values) { return null; }

@@ -130,4 +130,41 @@ public class Clock31LogicTest {
         assertEquals(Clock31Logic.RelKind.NONE, Clock31Logic.relativeTime(NOW + 2 * 86400000L, NOW + 2 * 86400000L + 3600000L, NOW).kind);
         assertEquals(Clock31Logic.RelKind.NONE, Clock31Logic.relativeTime(NOW - 1000L, NOW - 500L, NOW).kind); // past
     }
+
+    // --- Weather (B3) ------------------------------------------------------------------
+
+    @Test public void openMeteoUrl_isKeylessCurrentEndpoint() {
+        String u = Clock31Logic.openMeteoUrl(41.15, -8.6, true);
+        assertTrue(u.startsWith("https://api.open-meteo.com/v1/forecast?"));
+        assertTrue(u.contains("latitude=41.15"));
+        assertTrue(u.contains("longitude=-8.6"));
+        assertTrue(u.contains("current=temperature_2m,weather_code"));
+        assertTrue(u.contains("temperature_unit=celsius"));
+        assertTrue(Clock31Logic.openMeteoUrl(0, 0, false).contains("temperature_unit=fahrenheit"));
+    }
+
+    @Test public void parseOpenMeteo_readsCurrentNumbersNotUnits() {
+        String json = "{\"current_units\":{\"temperature_2m\":\"°C\",\"weather_code\":\"wmo code\"},"
+                + "\"current\":{\"time\":\"2026-07-16T10:00\",\"interval\":900,\"temperature_2m\":21.4,\"weather_code\":3}}";
+        Clock31Logic.WeatherData w = Clock31Logic.parseOpenMeteoCurrent(json);
+        assertEquals(21.4, w.temp, 0.001);
+        assertEquals(3, w.code);
+        assertEquals(null, Clock31Logic.parseOpenMeteoCurrent("{}"));
+        assertEquals(null, Clock31Logic.parseOpenMeteoCurrent(null));
+    }
+
+    @Test public void weatherGlyph_mapsCodesToDistinctIcons() {
+        assertEquals("\ue430", Clock31Logic.weatherGlyph(0));   // clear
+        assertEquals("\ue42d", Clock31Logic.weatherGlyph(2));   // clouds
+        assertEquals("\ue818", Clock31Logic.weatherGlyph(45));  // fog
+        assertEquals("\uf1ad", Clock31Logic.weatherGlyph(61));  // rain
+        assertEquals("\ueb3b", Clock31Logic.weatherGlyph(73));  // snow
+        assertEquals("\uebdb", Clock31Logic.weatherGlyph(95));  // thunderstorm
+    }
+
+    @Test public void formatTemp_roundsToWholeDegree() {
+        assertEquals("21°", Clock31Logic.formatTemp(21.4));
+        assertEquals("22°", Clock31Logic.formatTemp(21.6));
+        assertEquals("-3°", Clock31Logic.formatTemp(-2.6));
+    }
 }

@@ -36,17 +36,25 @@ inside the APK next to the fonts, in `app/src/main/assets/fonts/`.
   bundled notice satisfy that. The font must not be resold on its own or
   modified; the file bundled here is the unmodified original.
 
-### Material Icons (alarm glyph)
+### Material Icons (alarm + weather glyphs)
 
-- File: `app/src/main/assets/fonts/material_alarm.ttf` (a subset containing only
-  the "alarm" glyph, U+E855).
-- Used for: the next-alarm indicator next to the date.
+- Files: `app/src/main/assets/fonts/material_alarm.ttf` (the "alarm" glyph, U+E855)
+  and `app/src/main/assets/fonts/material_weather.ttf` (six weather glyphs: sunny,
+  cloudy, foggy, rain, snow, thunderstorm).
+- Used for: the next-alarm indicator and the weather line next to the date.
 - Copyright The Material Design Authors
   (<https://github.com/google/material-design-icons>).
 - License: **Apache License, Version 2.0** — see
   [`app/src/main/assets/fonts/MaterialIcons-LICENSE.txt`](app/src/main/assets/fonts/MaterialIcons-LICENSE.txt).
-- The icon is bundled unmodified (subset only, no glyph changes) and tinted at
+- The icons are bundled unmodified (subsets only, no glyph changes) and tinted at
   runtime to match the wallpaper-derived clock/date color.
+
+## Weather data
+
+The weather line is powered by **Open-Meteo** (<https://open-meteo.com>), a free,
+keyless weather API. Weather data is licensed **CC BY 4.0**
+(<https://creativecommons.org/licenses/by/4.0/>). No data is bundled with the app; it
+is fetched at runtime from the device's approximate (coarse) location.
 
 ## Wallpaper / Material You color
 

@@ -52,11 +52,17 @@ public class C31WidgetConfigureActivity extends Activity {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(checkPermission(Manifest.permission.READ_CALENDAR,Process.myPid(),Process.myUid())==PackageManager.PERMISSION_GRANTED){
+            boolean calendar = checkPermission(Manifest.permission.READ_CALENDAR,Process.myPid(),Process.myUid())==PackageManager.PERMISSION_GRANTED;
+            boolean location = checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,Process.myPid(),Process.myUid())==PackageManager.PERMISSION_GRANTED;
+            if(calendar && location){
                 proceedWithWidgetCreation();
                 return;
-            }else{
-                requestPermissions(new String[]{Manifest.permission.READ_CALENDAR},101);
+            } else if(calendar){
+                // Calendar is granted; ask once for location so the weather line can work.
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},102);
+            } else {
+                // Ask for both; only calendar is required to create the widget.
+                requestPermissions(new String[]{Manifest.permission.READ_CALENDAR, Manifest.permission.ACCESS_COARSE_LOCATION},101);
             }
         }
     }
@@ -65,11 +71,17 @@ public class C31WidgetConfigureActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode==101){
-            if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                proceedWithWidgetCreation();
-            }else{
-                failWidgetCreation();
+            // Calendar is required; location is optional (weather only).
+            boolean calendarGranted=false;
+            for(int i=0;i<permissions.length;i++){
+                if(Manifest.permission.READ_CALENDAR.equals(permissions[i]) && grantResults[i]==PackageManager.PERMISSION_GRANTED){
+                    calendarGranted=true;
+                }
             }
+            if(calendarGranted) proceedWithWidgetCreation(); else failWidgetCreation();
+        } else if(requestCode==102){
+            // Location-only (opportunistic); create the widget regardless of the choice.
+            proceedWithWidgetCreation();
         }
     }
 

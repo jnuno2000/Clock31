@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
 import org.junit.Test;
 
 /**
@@ -96,5 +99,35 @@ public class Clock31LogicTest {
     @Test public void calendarTimeUri_pointsAtCalendarTimeEndpoint() {
         assertEquals("content://com.android.calendar/time/1500000000000",
                 Clock31Logic.calendarTimeUri(1500000000000L));
+    }
+
+    // --- Agenda day-grouping + relative time (B2) --------------------------------------
+
+    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+    private static final long NOW = 1500000000000L; // 2017-07-14 02:40:00 UTC
+
+    @Test public void localEpochDay_incrementsAtMidnight() {
+        assertEquals(Clock31Logic.localEpochDay(NOW, UTC),
+                Clock31Logic.localEpochDay(NOW + 3600000L, UTC));            // same day
+        assertEquals(Clock31Logic.localEpochDay(NOW, UTC) + 1,
+                Clock31Logic.localEpochDay(NOW + 86400000L, UTC));          // next day
+    }
+
+    @Test public void dayHeaderLabel_todayTomorrowElseDate() {
+        assertEquals("Today", Clock31Logic.dayHeaderLabel(NOW + 3600000L, NOW, UTC, Locale.US, "Today", "Tomorrow"));
+        assertEquals("Tomorrow", Clock31Logic.dayHeaderLabel(NOW + 86400000L, NOW, UTC, Locale.US, "Today", "Tomorrow"));
+        assertEquals("Mon, Jul 17", Clock31Logic.dayHeaderLabel(NOW + 3 * 86400000L, NOW, UTC, Locale.US, "Today", "Tomorrow"));
+    }
+
+    @Test public void relativeTime_buckets() {
+        assertEquals(Clock31Logic.RelKind.NOW, Clock31Logic.relativeTime(NOW - 1000L, NOW + 1000L, NOW).kind);
+        Clock31Logic.Relative min = Clock31Logic.relativeTime(NOW + 30 * 60000L, NOW + 90 * 60000L, NOW);
+        assertEquals(Clock31Logic.RelKind.MINUTES, min.kind);
+        assertEquals(30, min.value);
+        Clock31Logic.Relative hr = Clock31Logic.relativeTime(NOW + 90 * 60000L, NOW + 120 * 60000L, NOW);
+        assertEquals(Clock31Logic.RelKind.HOURS, hr.kind);
+        assertEquals(1, hr.value);
+        assertEquals(Clock31Logic.RelKind.NONE, Clock31Logic.relativeTime(NOW + 2 * 86400000L, NOW + 2 * 86400000L + 3600000L, NOW).kind);
+        assertEquals(Clock31Logic.RelKind.NONE, Clock31Logic.relativeTime(NOW - 1000L, NOW - 500L, NOW).kind); // past
     }
 }

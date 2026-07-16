@@ -1,5 +1,10 @@
 package com.dosse.clock31;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
 /**
  * Pure, Android-free logic extracted from the widget so it can be unit-tested on a plain
  * JVM (see {@code app/src/test}). Everything here is deterministic and side-effect free.
@@ -83,5 +88,53 @@ final class Clock31Logic {
      */
     static String calendarTimeUri(long millis){
         return "content://com.android.calendar/time/" + millis;
+    }
+
+    // --- Agenda day-grouping + relative time -------------------------------------------
+
+    /** Local calendar day of a timestamp, as a day count that increments at local midnight. */
+    static long localEpochDay(long millis, TimeZone tz){
+        return Math.floorDiv(millis + tz.getOffset(millis), 86400000L);
+    }
+
+    /**
+     * Header label for the day an event begins: the given "today"/"tomorrow" labels for
+     * those days (so the caller can localize them), otherwise a short date like
+     * "Wed, Jul 23".
+     */
+    static String dayHeaderLabel(long beginMs, long nowMs, TimeZone tz, Locale locale,
+                                 String todayLabel, String tomorrowLabel){
+        long day = localEpochDay(beginMs, tz), today = localEpochDay(nowMs, tz);
+        if(day == today) return todayLabel;
+        if(day == today + 1) return tomorrowLabel;
+        SimpleDateFormat fmt = new SimpleDateFormat("EEE, MMM d", locale);
+        fmt.setTimeZone(tz);
+        return fmt.format(new java.util.Date(beginMs));
+    }
+
+    /** Whether two timestamps fall on the same local calendar day. */
+    static boolean sameLocalDay(long a, long b, TimeZone tz){
+        return localEpochDay(a, tz) == localEpochDay(b, tz);
+    }
+
+    enum RelKind { NOW, MINUTES, HOURS, NONE }
+
+    /** A relative-time bucket for an event, e.g. NOW / MINUTES(25) / HOURS(3) / NONE. */
+    static final class Relative {
+        final RelKind kind; final int value;
+        Relative(RelKind kind, int value){ this.kind = kind; this.value = value; }
+    }
+
+    /**
+     * Relative-time label bucket for an upcoming event: NOW while it's ongoing, MINUTES
+     * under an hour away, HOURS under a day away, else NONE (show the absolute time only).
+     */
+    static Relative relativeTime(long beginMs, long endMs, long nowMs){
+        if(nowMs >= beginMs && nowMs < endMs) return new Relative(RelKind.NOW, 0);
+        long d = beginMs - nowMs;
+        if(d <= 0) return new Relative(RelKind.NONE, 0);
+        if(d < 3600000L) return new Relative(RelKind.MINUTES, (int)Math.max(1, d / 60000L));
+        if(d < 86400000L) return new Relative(RelKind.HOURS, (int)(d / 3600000L));
+        return new Relative(RelKind.NONE, 0);
     }
 }

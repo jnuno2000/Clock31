@@ -82,7 +82,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
         private List<CalendarListEntry> entries=new ArrayList<>();
 
         /** A row in the agenda list: either a day header or an event. */
-        private static class Row {
+        private class Row {
             final String header;               // non-null => day-header row
             final long headerDay;              // local epoch day (stable id for headers)
             final CalendarListEntry event;     // non-null => event row

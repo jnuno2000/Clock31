@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag to create (e.g. v1.3.0)'
+        description: 'Release version tag to create (e.g. v1.4.0)'
         required: true
-        default: 'v1.3.0'
+        default: 'v1.4.0'
 
 permissions:
   contents: write
@@ -90,11 +90,17 @@ jobs:
           body: |
             A lock-screen-style clock + agenda widget, tinted from your wallpaper.
 
-            New in 1.3.0:
+            New in 1.4.0:
+            * Tap the weather to open a weather app of your choice (pick it in the widget settings)
+            * Tap a day header in the agenda to open your calendar on that day
+            * Cleaner event rows: the time only (or "All day") — the day already shows in its header, so it's no longer repeated
+            * The next-alarm indicator now shows only real alarms, ignoring a clock app's invisible midnight housekeeping alarm that could show a phantom "00:00"
+
+            From 1.3.0:
             * Weather: current temperature and a wallpaper-tinted weather icon next to the date (via free, keyless Open-Meteo)
             * Agenda view: events grouped by day (Today / Tomorrow / date) with a relative time on imminent events ("Now", "in 25 min")
             * Tap the date to open your calendar on today
-            * New settings screen: color tone (wallpaper / neutral / white), clock-only mode, and weather on/off + °C/°F
+            * Settings screen: color tone (wallpaper / neutral / white), clock-only mode, and weather on/off + °C/°F
 
             Also included:
             * Clock and date are tinted from your wallpaper on Android 12+ (Material You); older versions keep the classic white look

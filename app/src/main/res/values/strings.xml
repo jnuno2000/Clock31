@@ -5,6 +5,7 @@
     <string name="tap_calendar">Enjoy your free time</string>
     <string name="header_today">Today</string>
     <string name="header_tomorrow">Tomorrow</string>
+    <string name="all_day">All day</string>
     <string name="rel_now">Now</string>
     <string name="rel_in_min">in %1$d min</string>
     <string name="rel_in_hour">in %1$d h</string>
@@ -18,5 +19,8 @@
     <string name="unit_label">Temperature unit</string>
     <string name="unit_celsius">°C</string>
     <string name="unit_fahrenheit">°F</string>
+    <string name="weather_app_label">App to open when you tap the weather</string>
+    <string name="weather_app_none">Not set</string>
+    <string name="weather_app_choose">Choose app</string>
     <string name="done">Add widget</string>
 </resources>

@@ -6,6 +6,7 @@
     <string name="tap_calendar">Goditi il tempo libero</string>
     <string name="header_today">Oggi</string>
     <string name="header_tomorrow">Domani</string>
+    <string name="all_day">Tutto il giorno</string>
     <string name="rel_now">Ora</string>
     <string name="rel_in_min">tra %1$d min</string>
     <string name="rel_in_hour">tra %1$d h</string>
@@ -19,5 +20,8 @@
     <string name="unit_label">Unità temperatura</string>
     <string name="unit_celsius">°C</string>
     <string name="unit_fahrenheit">°F</string>
+    <string name="weather_app_label">App da aprire toccando il meteo</string>
+    <string name="weather_app_none">Non impostata</string>
+    <string name="weather_app_choose">Scegli app</string>
     <string name="done">Aggiungi widget</string>
 </resources>

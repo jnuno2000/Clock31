@@ -1,0 +1,4 @@
+* Tocca il meteo per aprire un'app meteo a tua scelta (scegli l'app nelle impostazioni del widget)
+* Tocca l'intestazione di un giorno nell'agenda per aprire il calendario su quel giorno
+* Righe evento più pulite: solo l'ora (o "Tutto il giorno") — il giorno è già nell'intestazione
+* L'indicatore della prossima sveglia mostra ora solo le sveglie reali, ignorando la sveglia di manutenzione invisibile di mezzanotte di alcune app orologio che poteva mostrare un falso "00:00"

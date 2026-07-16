@@ -92,6 +92,20 @@
                 android:text="@string/unit_fahrenheit" />
         </RadioGroup>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/weather_app_label"
+            android:textStyle="bold"
+            android:paddingTop="16dp" />
+
+        <Button
+            android:id="@+id/btn_weather_app"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/weather_app_choose" />
+
         <Button
             android:id="@+id/btn_done"
             android:layout_width="match_parent"

@@ -21,6 +21,11 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="content" android:host="com.android.calendar" />
         </intent>
+        <!-- So the chosen "weather app" (tap the weather) can be picked and launched. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.android.deskclock" />
     </queries>

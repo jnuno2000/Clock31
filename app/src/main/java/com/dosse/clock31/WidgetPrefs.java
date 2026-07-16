@@ -15,6 +15,7 @@ final class WidgetPrefs {
     private static final String KEY_CLOCK_ONLY = "clock_only";
     private static final String KEY_WEATHER = "weather_enabled";
     private static final String KEY_CELSIUS = "celsius";
+    private static final String KEY_WEATHER_APP = "weather_app";
 
     private WidgetPrefs(){}
 
@@ -26,6 +27,10 @@ final class WidgetPrefs {
     static boolean clockOnly(Context ctx){ return prefs(ctx).getBoolean(KEY_CLOCK_ONLY, false); }
     static boolean weatherEnabled(Context ctx){ return prefs(ctx).getBoolean(KEY_WEATHER, true); }
     static boolean celsius(Context ctx){ return prefs(ctx).getBoolean(KEY_CELSIUS, true); }
+
+    /** Package of the app to open when the weather is tapped; "" if none chosen. */
+    static String weatherApp(Context ctx){ return prefs(ctx).getString(KEY_WEATHER_APP, ""); }
+    static void setWeatherApp(Context ctx, String pkg){ prefs(ctx).edit().putString(KEY_WEATHER_APP, pkg == null ? "" : pkg).apply(); }
 
     static void save(Context ctx, int tone, boolean clockOnly, boolean weatherEnabled, boolean celsius){
         prefs(ctx).edit()

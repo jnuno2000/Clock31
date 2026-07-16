@@ -85,9 +85,10 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
         private class Row {
             final String header;               // non-null => day-header row
             final long headerDay;              // local epoch day (stable id for headers)
+            final long headerMillis;           // a timestamp on that day (to open the calendar there)
             final CalendarListEntry event;     // non-null => event row
-            Row(String header, long headerDay){ this.header=header; this.headerDay=headerDay; this.event=null; }
-            Row(CalendarListEntry event){ this.header=null; this.headerDay=0; this.event=event; }
+            Row(String header, long headerDay, long headerMillis){ this.header=header; this.headerDay=headerDay; this.headerMillis=headerMillis; this.event=null; }
+            Row(CalendarListEntry event){ this.header=null; this.headerDay=0; this.headerMillis=0; this.event=event; }
             boolean isHeader(){ return event==null; }
         }
 
@@ -196,7 +197,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
             for(CalendarListEntry e:entries){
                 long day=Clock31Logic.localEpochDay(e.eventBegin, tz);
                 if(day!=lastDay){
-                    rows.add(new Row(Clock31Logic.dayHeaderLabel(e.eventBegin, groupNow, tz, Locale.getDefault(), todayLabel, tomorrowLabel), day));
+                    rows.add(new Row(Clock31Logic.dayHeaderLabel(e.eventBegin, groupNow, tz, Locale.getDefault(), todayLabel, tomorrowLabel), day, e.eventBegin));
                     lastDay=day;
                 }
                 rows.add(new Row(e));
@@ -264,6 +265,12 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_header);
                 int headerColor=C31Widget.resolveColor(context, R.color.widget_date_color);
                 v.setImageViewBitmap(R.id.header_label, renderEventText(row.header, titleTypeface(), 13f*density, headerColor, maxW));
+                // Tapping a day header opens the calendar on that day (uses the same
+                // ACTION_VIEW template as the event rows, filled in with a time URI).
+                Intent openDay=new Intent();
+                openDay.setData(Uri.parse(Clock31Logic.calendarTimeUri(row.headerMillis)));
+                openDay.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                v.setOnClickFillInIntent(R.id.calendar_header, openDay);
                 return v;
             }
             CalendarListEntry data=row.event;
@@ -271,23 +278,17 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
             RemoteViews v=new RemoteViews(context.getPackageName(),R.layout.calendar_entry);
             Bitmap titleBmp=renderEventText(data.eventTitle, titleTypeface(), 15f*density, 0xffffffff, maxW);
             v.setImageViewBitmap(R.id.event_title, titleBmp);
+            // The day is shown in the header, so the event line only needs the time
+            // (or "All day"). Avoids the date appearing twice.
             String formattedDate;
             if(data.eventAllDay){
-                if(data.eventEnd-data.eventBegin>DAY_IN_MS){
-                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
-                }else{
-                    formattedDate= DateUtils.formatDateTime(context,data.eventBegin,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL);
-                }
+                formattedDate = getString(R.string.all_day);
             }else{
-                if(DateUtils.isToday(data.eventBegin)&&DateUtils.isToday(data.eventEnd)){
-                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
-                }else{
-                    formattedDate= DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_WEEKDAY|DateUtils.FORMAT_ABBREV_ALL|DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
-                }
+                formattedDate = DateUtils.formatDateRange(context,data.eventBegin,data.eventEnd,DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_NO_NOON|DateUtils.FORMAT_NO_MIDNIGHT);
+                // Prefix a relative time for imminent events, e.g. "Now · 10:30" / "in 25 min · 14:00".
+                String rel=relativeText(Clock31Logic.relativeTime(data.eventBegin, data.eventEnd, System.currentTimeMillis()));
+                if(!rel.isEmpty()) formattedDate = rel + "  ·  " + formattedDate;
             }
-            // Prefix a relative time for imminent events, e.g. "Now · 10:30" / "in 25 min · 14:00".
-            String rel=relativeText(Clock31Logic.relativeTime(data.eventBegin, data.eventEnd, System.currentTimeMillis()));
-            if(!rel.isEmpty()) formattedDate = rel + "  ·  " + formattedDate;
             Bitmap timeBmp=renderEventText(formattedDate, timeTypeface(), 12f*density, 0xe6ffffff, maxW);
             v.setImageViewBitmap(R.id.event_date, timeBmp);
             // Report the exact event-block height (title + time bitmaps + padding 7+7,

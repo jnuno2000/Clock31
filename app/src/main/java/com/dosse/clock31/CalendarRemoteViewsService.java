@@ -239,7 +239,7 @@ public class CalendarRemoteViewsService extends RemoteViewsService{
                 // to whole blocks. Widget layout values must match calendar_entry.xml.
                 C31Widget.calendarBlockHeightPx = titleBmp.getHeight() + timeBmp.getHeight()
                         + (int)Math.ceil((7f+7f+1f+6f)*density);
-                int blockColor = (data.eventColor >>> 24) == 0 ? DEFAULT_EVENT_COLOR : data.eventColor;
+                int blockColor = Clock31Logic.blockColor(data.eventColor, DEFAULT_EVENT_COLOR);
                 v.setViewVisibility(R.id.block_bg, View.VISIBLE);
                 v.setInt(R.id.block_bg, "setColorFilter", blockColor);
                 Intent openEvent=new Intent();

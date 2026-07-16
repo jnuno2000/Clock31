@@ -74,7 +74,7 @@ public class C31Widget extends AppWidgetProvider {
         return dateTypeface;
     }
 
-    private static int resolveColor(Context context, int resId){
+    static int resolveColor(Context context, int resId){
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) return context.getColor(resId);
         return context.getResources().getColor(resId);
     }
@@ -110,7 +110,7 @@ public class C31Widget extends AppWidgetProvider {
      * suffix (e.g. AM/PM) in a second typeface baseline-aligned next to it, plus a
      * soft drop shadow so light text stays legible over any wallpaper.
      */
-    private static Bitmap renderText(Context context, CharSequence main, Typeface mainTf, float mainPx,
+    static Bitmap renderText(Context context, CharSequence main, Typeface mainTf, float mainPx,
                                      CharSequence suffix, Typeface suffixTf, float suffixPx, int color){
         String mainStr = main==null ? "" : main.toString();
         Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -155,7 +155,7 @@ public class C31Widget extends AppWidgetProvider {
      * color}, matching the wallpaper-tinted clock/date) followed by the time text,
      * vertically centered together in one bitmap.
      */
-    private static Bitmap renderAlarm(Context context, CharSequence timeText, Typeface tf, float textPx, int color){
+    static Bitmap renderAlarm(Context context, CharSequence timeText, Typeface tf, float textPx, int color){
         Bitmap iconBmp=renderText(context, ALARM_GLYPH, alarmIconTypeface(context), textPx, null, null, 0f, color);
         Bitmap textBmp=renderText(context, timeText, tf, textPx, null, null, 0f, color);
         int gap=Math.round(textPx*0.12f);
@@ -181,10 +181,11 @@ public class C31Widget extends AppWidgetProvider {
         if(options!=null){
             int h=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT);
             int w=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
-            clockFontScale=Math.max(0.4f, Math.min(1, Math.min(h, w) / 275f));
-            dateFontScale=Math.max(0.7f, Math.min(1, Math.min(h, w) / 275f));
-            if(w<150){ hideAlarm=true; dateFontScale=Math.min(1, dateFontScale*1.25f); }
-            if(h<80){ hideCalendar=true; clockFontScale=Math.min(1, clockFontScale*1.5f); dateFontScale=Math.min(1, dateFontScale*1.25f); }
+            Clock31Logic.Sizing sz=Clock31Logic.sizingFor(w, h);
+            clockFontScale=sz.clockScale;
+            dateFontScale=sz.dateScale;
+            hideAlarm=sz.hideAlarm;
+            hideCalendar=sz.hideCalendar;
         }
         if(Build.VERSION.SDK_INT<=Build.VERSION_CODES.N){ clockFontScale=clockFontScale*0.8f; }
 
@@ -196,15 +197,15 @@ public class C31Widget extends AppWidgetProvider {
 
         // Clock: digits + AM/PM (12h only) in the clock font.
         float clockPx=(is24?100f:75f)*clockFontScale*density;
-        CharSequence timeText=DateFormat.format(is24?"HH:mm":"h:mm", now);
-        CharSequence ampm=is24?null:DateFormat.format("a", now);
+        CharSequence timeText=DateFormat.format(Clock31Logic.clockFormatPattern(is24), now);
+        CharSequence ampm=Clock31Logic.ampmVisible(is24)?DateFormat.format("a", now):null;
         Bitmap clockBmp=renderText(context, timeText, clockTypeface(context), clockPx,
                 ampm, clockTypeface(context), clockPx*0.5f, clockColor);
         views.setImageViewBitmap(R.id.clock, clockBmp);
 
         // Date in MiSans, formatted like the lock screen (e.g. "Jul 15, Wed").
         float datePx=22f*dateFontScale*density;
-        CharSequence dateText=DateFormat.format("MMM d, EEE", now);
+        CharSequence dateText=DateFormat.format(Clock31Logic.DATE_FORMAT_PATTERN, now);
         Bitmap dateBmp=renderText(context, dateText, dateTypeface(context), datePx,
                 null, null, 0f, dateColor);
         views.setImageViewBitmap(R.id.date, dateBmp);
@@ -214,7 +215,7 @@ public class C31Widget extends AppWidgetProvider {
             AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
             AlarmManager.AlarmClockInfo alarmClock=am.getNextAlarmClock();
             if(alarmClock!=null){
-                CharSequence alarmText=DateFormat.format(is24?"E HH:mm":"E h:mm a", alarmClock.getTriggerTime());
+                CharSequence alarmText=DateFormat.format(Clock31Logic.alarmFormatPattern(is24), alarmClock.getTriggerTime());
                 views.setImageViewBitmap(R.id.alarm, renderAlarm(context, alarmText, dateTypeface(context), datePx, dateColor));
                 views.setViewVisibility(R.id.alarm, View.VISIBLE);
             } else {
@@ -235,10 +236,8 @@ public class C31Widget extends AppWidgetProvider {
                 // some launchers (e.g. HyperOS), which left a block of empty space at
                 // the bottom. Add a correction so whole blocks fill the actual space.
                 float availablePx=widgetHdp*density - clockBmp.getHeight() - dateBmp.getHeight() + 16f*density;
-                // blockPx includes one divider; N blocks use N-1 dividers, so the list
-                // is N*blockPx - one divider. Pick the largest N that fits.
-                int n=Math.max(1, (int)Math.floor((availablePx + dividerPx)/(float)blockPx));
-                views.setViewLayoutHeight(R.id.calendar, Math.max(1, n*blockPx - dividerPx), TypedValue.COMPLEX_UNIT_PX);
+                int n=Clock31Logic.blocksThatFit(availablePx, blockPx, dividerPx);
+                views.setViewLayoutHeight(R.id.calendar, Clock31Logic.listHeightPx(n, blockPx, dividerPx), TypedValue.COMPLEX_UNIT_PX);
             }
         }
         return hideCalendar;
@@ -251,7 +250,7 @@ public class C31Widget extends AppWidgetProvider {
             Intent i=new Intent(context, C31Widget.class).setAction(ACTION_TICK);
             PendingIntent pi=PendingIntent.getBroadcast(context, 1, i, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
             long now=System.currentTimeMillis();
-            long next=now - (now % 60000L) + 60000L;
+            long next=Clock31Logic.nextMinuteBoundary(now);
             am.set(AlarmManager.RTC, next, pi);
         }catch(Throwable t){
             Log.v(TAG, "Failed to schedule clock tick");
@@ -296,7 +295,7 @@ public class C31Widget extends AppWidgetProvider {
      * clock app the user actually has (Google Clock, the AOSP/Xiaomi clock, ...)
      * instead of a hard-coded package that breaks if that app isn't installed.
      */
-    private static Intent clockAppIntent(Context context) {
+    static Intent clockAppIntent(Context context) {
         PackageManager pm = context.getPackageManager();
         Intent showAlarms = new Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (showAlarms.resolveActivity(pm) != null) return showAlarms;

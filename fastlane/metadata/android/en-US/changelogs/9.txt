@@ -1,0 +1,4 @@
+* Tap the weather to open a weather app of your choice (pick it in the widget settings)
+* Tap a day header in the agenda to open your calendar on that day
+* Cleaner event rows: the time only (or "All day") — the day already shows in its header
+* The next-alarm indicator now shows only real alarms, ignoring a clock app's invisible midnight housekeeping alarm that could show a phantom "00:00"

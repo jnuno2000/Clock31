@@ -6,7 +6,7 @@ Clock 31 is a Clock + Calendar combo widget for Android, inspired by (but not fo
 
 This is a personal fork with a restyled look inspired by the Android 12+ / HyperOS lock screen: the clock and date pick up a color from your wallpaper (Material You), and the calendar is shown as solid, Google-Calendar-style colored blocks.
 
-The widget shows the current time and date, the next alarm (if any), and upcoming events from all your calendars. Each event is drawn as a rounded block in its calendar's color. Some useful shortcuts are also provided: tapping the clock opens the clock and alarm app, and tapping an event opens that event in your calendar.
+The widget shows the current time and date, the next alarm (if any), and upcoming events from all your calendars. Each event is drawn as a rounded block in its calendar's color. Some useful shortcuts are also provided: tapping the clock opens the clock and alarm app, tapping the date or a day header opens your calendar there, tapping an event opens that event, and tapping the weather opens a weather app of your choice.
 
 ## What's new in this fork
 
@@ -15,8 +15,9 @@ The widget shows the current time and date, the next alarm (if any), and upcomin
 - **Google-Calendar-style events** — each event is a solid rounded block in its calendar color with clean white text, instead of a plain list with a color bar.
 - **Agenda view** — events are grouped by day (Today / Tomorrow / date) with a relative time on imminent events ("Now", "in 25 min").
 - **Weather** — the current temperature and a wallpaper-tinted weather icon show next to the date, via the free, keyless [Open-Meteo](https://open-meteo.com) API and your device's approximate location.
-- **Handy taps** — tap the clock to open your clock/alarm app; tap the date to open your calendar on today; tap an event to open it.
-- **Settings** — an optional config screen for color tone (wallpaper / neutral / white), a clock-only mode, and weather on/off + °C/°F. Defaults keep everything automatic.
+- **Handy taps** — tap the clock to open your clock/alarm app; tap the date (or a day header in the agenda) to open your calendar on that day; tap an event to open it; tap the weather to open a weather app of your choice.
+- **Settings** — an optional config screen for color tone (wallpaper / neutral / white), a clock-only mode, weather on/off + °C/°F, and which app the weather tap opens. Defaults keep everything automatic.
+- **Real alarms only** — the next-alarm indicator shows only alarms that a clock app registers for you, ignoring an app's invisible midnight housekeeping alarm that could otherwise show a phantom "00:00".
 - **Cleaner layout** — the calendar icon and the left divider column were removed so events span the full width, and the list snaps to whole blocks so no partial row is clipped (it's still scrollable).
 
 ## Download

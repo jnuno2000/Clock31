@@ -256,7 +256,11 @@ public class C31Widget extends AppWidgetProvider {
         if(!hideAlarm){
             AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
             AlarmManager.AlarmClockInfo alarmClock=am.getNextAlarmClock();
-            if(alarmClock!=null){
+            // Only show user-facing alarms: real clock-app alarms carry a show-intent (so
+            // the alarm can be opened), whereas background/housekeeping alarm-clocks (e.g. a
+            // clock app's daily midnight "update instances" alarm) don't. This matches the
+            // lock screen and never hides a genuine alarm.
+            if(alarmClock!=null && alarmClock.getShowIntent()!=null){
                 CharSequence alarmText=DateFormat.format(Clock31Logic.alarmFormatPattern(is24), alarmClock.getTriggerTime());
                 views.setImageViewBitmap(R.id.alarm, renderAlarm(context, alarmText, dateTypeface(context), datePx, dateColor));
                 views.setViewVisibility(R.id.alarm, View.VISIBLE);
@@ -378,6 +382,20 @@ public class C31Widget extends AppWidgetProvider {
                 }
             } catch (Throwable t) {
                 Log.v(TAG, "Failed to register event handler for tapping date (no calendar app?)");
+            }
+            try {
+                // Tapping the weather opens the app the user chose in settings.
+                String weatherPkg = WidgetPrefs.weatherApp(context);
+                if (weatherPkg != null && !weatherPkg.isEmpty()) {
+                    Intent openWeather = context.getPackageManager().getLaunchIntentForPackage(weatherPkg);
+                    if (openWeather != null) {
+                        openWeather.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        PendingIntent pi = PendingIntent.getActivity(context, 3, openWeather, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
+                        views.setOnClickPendingIntent(R.id.weather, pi);
+                    }
+                }
+            } catch (Throwable t) {
+                Log.v(TAG, "Failed to register event handler for tapping weather");
             }
             if (!hideCalendar) {
                 views.setViewVisibility(R.id.calendar_container, View.VISIBLE);

@@ -1,6 +1,7 @@
 package com.dosse.clock31;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -77,6 +78,30 @@ public class CalendarFactoryTest {
         RemoteViewsFactory f = factoryAfterLoad();
         assertEquals(1, f.getCount());
         assertEquals(-1L, f.getItemId(0));
+    }
+
+    /**
+     * Events across two days produce at least two day headers, and every row (headers
+     * and events, incl. the tappable header wiring and the time-only event line) renders
+     * without throwing.
+     */
+    @Test
+    public void headersAndEventRows_renderWithoutThrowing() {
+        MatrixCursor c = new MatrixCursor(COLS);
+        long now = System.currentTimeMillis();
+        long day = 24L * 3600000L;
+        c.addRow(new Object[]{201L, "Today event", now + 3600000L, now + 7200000L, 0, 0xFF4285F4});
+        c.addRow(new Object[]{202L, "Tomorrow event", now + day + 3600000L, now + day + 7200000L, 0, 0xFF34A853});
+        registerCursor(c);
+
+        RemoteViewsFactory f = factoryAfterLoad();
+        int n = f.getCount();
+        int headers = 0;
+        for (int i = 0; i < n; i++) {
+            assertNotNull("row " + i + " should render", f.getViewAt(i));
+            if (f.getItemId(i) <= Long.MIN_VALUE + 1_000_000L) headers++; // header ids are MIN_VALUE + day
+        }
+        assertTrue("two distinct days should yield two headers", headers >= 2);
     }
 
     /** Minimal provider that returns a preset cursor for any calendar query. */

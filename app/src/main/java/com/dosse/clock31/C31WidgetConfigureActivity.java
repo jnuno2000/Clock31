@@ -3,6 +3,7 @@ package com.dosse.clock31;
 import android.Manifest;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -18,6 +19,7 @@ public class C31WidgetConfigureActivity extends Activity {
 
     private static final String PREFS_NAME = "com.dosse.clock31.C31Widget";
     private static final String PREF_PREFIX_KEY = "appwidget_";
+    private static final int REQ_PICK_WEATHER_APP = 201;
     int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     private C31WidgetConfigureBinding binding;
@@ -80,7 +82,46 @@ public class C31WidgetConfigureActivity extends Activity {
         boolean celsius = WidgetPrefs.celsius(this);
         binding.unitCelsius.setChecked(celsius);
         binding.unitFahrenheit.setChecked(!celsius);
+        updateWeatherAppButton();
+        binding.btnWeatherApp.setOnClickListener(v -> pickWeatherApp());
         binding.btnDone.setOnClickListener(v -> saveAndFinish());
+    }
+
+    /** Label the "weather app" button with the current choice (or the default prompt). */
+    private void updateWeatherAppButton(){
+        String pkg = WidgetPrefs.weatherApp(this);
+        binding.btnWeatherApp.setText(pkg.isEmpty() ? getString(R.string.weather_app_choose) : appLabel(pkg));
+    }
+
+    private String appLabel(String pkg){
+        try {
+            PackageManager pm = getPackageManager();
+            return pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString();
+        } catch(Exception e){
+            return pkg;
+        }
+    }
+
+    /** System app-picker (ACTION_PICK_ACTIVITY) so the user chooses any installed app. */
+    private void pickWeatherApp(){
+        Intent target = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        Intent pick = new Intent(Intent.ACTION_PICK_ACTIVITY);
+        pick.putExtra(Intent.EXTRA_INTENT, target);
+        try { startActivityForResult(pick, REQ_PICK_WEATHER_APP); }
+        catch(Exception e){ /* no picker available */ }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQ_PICK_WEATHER_APP && resultCode==RESULT_OK && data!=null){
+            ComponentName cn = data.getComponent();
+            String pkg = cn != null ? cn.getPackageName() : data.getPackage();
+            if(pkg != null && !pkg.isEmpty()){
+                WidgetPrefs.setWeatherApp(this, pkg);
+                updateWeatherAppButton();
+            }
+        }
     }
 
     private void saveAndFinish(){

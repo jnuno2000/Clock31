@@ -289,7 +289,17 @@ public class C31Widget extends AppWidgetProvider {
         return hideCalendar;
     }
 
-    /** Schedules the next clock redraw at the top of the next minute. */
+    /**
+     * Schedules the next clock redraw at the top of the next minute.
+     *
+     * Uses an exact alarm: a plain {@code set()} is inexact since API 19, so the
+     * system may defer it by up to ~75% of the time remaining (≈45s for a one-minute
+     * tick, more on aggressive OEM ROMs), which left the clock showing the previous
+     * minute for a large part of every minute. RTC (non-wakeup) is kept so the device
+     * isn't woken every minute; while the screen is off the tick is delivered as soon
+     * as it wakes up. Falls back to the inexact alarm if exact alarms aren't allowed
+     * (SCHEDULE_EXACT_ALARM revoked on Android 12+).
+     */
     private static void scheduleTick(Context context){
         try{
             AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
@@ -297,6 +307,15 @@ public class C31Widget extends AppWidgetProvider {
             PendingIntent pi=PendingIntent.getBroadcast(context, 1, i, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
             long now=System.currentTimeMillis();
             long next=Clock31Logic.nextMinuteBoundary(now);
+            boolean canExact=Build.VERSION.SDK_INT<Build.VERSION_CODES.S || am.canScheduleExactAlarms();
+            if(canExact){
+                try{
+                    am.setExact(AlarmManager.RTC, next, pi);
+                    return;
+                }catch(SecurityException se){
+                    Log.v(TAG, "Exact alarm not permitted, falling back to inexact tick");
+                }
+            }
             am.set(AlarmManager.RTC, next, pi);
         }catch(Throwable t){
             Log.v(TAG, "Failed to schedule clock tick");

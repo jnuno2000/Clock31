@@ -33,6 +33,10 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The default ("tools platform-tools") fails: the legacy "tools" package
+          # no longer exists in current sdkmanager.
+          packages: platform-tools
 
       - name: Install SDK packages
         run: sdkmanager "platforms;android-33" "build-tools;33.0.1"

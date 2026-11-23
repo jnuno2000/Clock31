@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.INTERNET" /> <!--weather-->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!--weather-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Exact per-minute clock redraw (the clock is a bitmap, so it must be ticked on
+         time). Pre-granted for this app's targetSdk; the code falls back to an
+         inexact alarm if the user revokes it. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" /> <!--probably not necessary-->
     <uses-permission android:name="android.permission.SET_ALARM" /> <!--probably not necessary-->
 
@@ -52,6 +56,7 @@
                 <action android:name="com.android.deskclock.NEXT_ALARM_TIME_SET"/>
                 <action android:name="com.dosse.clock31.ACTION_REFRESH"/>
                 <action android:name="com.dosse.clock31.ACTION_TICK"/>
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED"/>
